@@ -33,7 +33,7 @@ const NavBar = () => {
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
             <li className="nav-item">
               <NavLink className="nav-link texto-azul-escuro nav-custom-link" to="/atividades">
-                Atividades
+                Sobre Atividades Complementares
               </NavLink>
             </li>
             <li className="nav-item">
@@ -42,12 +42,12 @@ const NavBar = () => {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link texto-azul-escuro nav-custom-link" to="/dashboard">
+              <NavLink className="nav-link texto-azul-escuro nav-custom-link" to="/eventos">
                 Eventos
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link texto-azul-escuro nav-custom-link" to="/dashboard">
+              <NavLink className="nav-link texto-azul-escuro nav-custom-link" to="/perguntas">
                 Perguntas Frequentes
               </NavLink>
             </li>

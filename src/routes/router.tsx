@@ -3,6 +3,10 @@ import Layout from "./Layout";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import ErrorLayout from "./ErrorLayout";
+import AtividadesPage from "../pages/AtividadesPage";
+import FAQPage from "../pages/FAQPage";
+import EventosPage from "../pages/EventosPage";
+import EventoSoloPage from "../pages/EventoPage";
 
 const router = createBrowserRouter(
   [
@@ -14,6 +18,22 @@ const router = createBrowserRouter(
         {
           path: "",
           element: <HomePage />,
+        },
+        {
+          path: "atividades",
+          element: <AtividadesPage />,
+        },
+        {
+          path: "eventos",
+          element: <EventosPage />,
+        },
+        {
+          path: "eventos/:slug",
+          element: <EventoSoloPage />,
+        },
+        {
+          path: "perguntas",
+          element: <FAQPage />,
         },
         {
           path: "login",

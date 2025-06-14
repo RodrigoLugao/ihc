@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
 import Card from "../components/Card"; // Certifique-se de que o caminho está correto
+import { eventData } from "../interfaces/Evento"; // Importa eventData do arquivo Evento.ts
+
+import dayjs from 'dayjs'; // Import dayjs
+import 'dayjs/locale/pt-br'; // Import pt-br locale for dayjs
+dayjs.locale('pt-br'); // Set dayjs locale to pt-br
 
 const HomePage = () => {
   // Dados dos cards para facilitar a renderização e reutilização
@@ -16,58 +21,14 @@ const HomePage = () => {
       imageUrl: "tabelas.png",
       title: "Tabela de Atividades",
       text: "Descubra as categorias de atividades e os limites de horas de cada categoria",
-      linkTo: "/atividades",
+      linkTo: "/atividades#tabela-atividades",
     },
     {
       id: 3,
       imageUrl: "perguntas.jpg",
       title: "Perguntas Frequentes", // Ajustei o título para refletir o conteúdo
       text: "As dúvidas mais comuns sobre Atividades Complementares", // Adapte o texto se for diferente
-      linkTo: "/atividades",
-    },
-  ];
-
-  // Dados dos eventos
-  const eventData = [
-    {
-      id: 1,
-      name: "Workshop de Extensão",
-      slug: "workshop-de-extensao",
-      date: "15/07/2025",
-      description:
-        "Aprenda sobre as oportunidades de extensão universitária e como elas contam para suas atividades complementares.",
-    },
-    {
-      id: 2,
-      name: "Ciclo de Palestras sobre IA",
-      slug: "ciclo-de-palestras-sobre-ia", // Slug adicionado
-      date: "20/07/2025",
-      description:
-        "Participe de um ciclo de palestras com especialistas em Inteligência Artificial e suas aplicações.",
-    },
-    {
-      id: 3,
-      name: "Maratona de Programação",
-      slug: "maratona-de-programacao", // Slug adicionado
-      date: "01/08/2025",
-      description:
-        "Teste suas habilidades de programação em um desafio intenso e divertido.",
-    },
-    {
-      id: 4,
-      name: "Seminário de Pesquisa Científica",
-      slug: "seminario-de-pesquisa-cientifica", // Slug adicionado
-      date: "10/08/2025",
-      description:
-        "Descubra como iniciar e desenvolver projetos de pesquisa na sua área.",
-    },
-    {
-      id: 5,
-      name: "Feira de Carreiras",
-      slug: "feira-de-carreiras", // Slug adicionado
-      date: "25/08/2025",
-      description:
-        "Conheça empresas, oportunidades de estágio e vagas de emprego em diversas áreas do conhecimento.",
+      linkTo: "/perguntas",
     },
   ];
 
@@ -223,17 +184,27 @@ const HomePage = () => {
                       <Link
                         className="text-decoration-none"
                         style={{ color: "inherit" }}
-                        to={event.slug}
+                        to={`/eventos/${event.slug}`} 
                       >
                         {event.name}{" "}
                       </Link>
                       <span className="event-date text-muted fst-italic ms-2">
-                        - {event.date}
+                        {/* Fixed: Use startDate and endDate with Day.js for formatting */}
+                        - {dayjs(event.startDate).format('DD/MM/YYYY HH:mm')} até {dayjs(event.endDate).format('DD/MM/YYYY HH:mm')}
                       </span>
                     </h5>
                     <p className="event-description text-secondary mb-0">
+                      Local: {event.location}
+                    </p>
+                    <p className="event-description text-secondary mb-3">
                       {event.description}
                     </p>
+                    <Link
+                        className="btn btn-outline-success"
+                        to={`/eventos/${event.slug}`} 
+                      >
+                        Ver Evento
+                      </Link>
                   </div>
                 ))}
                 <Link
@@ -246,7 +217,7 @@ const HomePage = () => {
             </div>
             <div className="col-md-6 d-none d-md-block">
               <img
-                src={"/quadro.png"}
+                src={"quadro.png"}
                 className="rounded"
                 alt={"Quadro de Atividades"}
                 style={{

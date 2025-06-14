@@ -58,6 +58,19 @@ body {
   color: var(--white); /* Cor do texto dentro desta div */
 }
 
+/* Seção Principal com Imagem de Fundo (HomePage) */
+.background-div-2 {
+  width: 100vw;
+  min-height: 500px; /* Altura mínima ajustável */
+  background-image: url("../public/calendario.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-blend-mode: overlay; /* Efeito de blend para a cor de fundo */
+  background-color: rgb(21, 26, 36); /* Cor de fundo que se mistura com a imagem */
+  color: var(--white); /* Cor do texto dentro desta div */
+}
+
 /* Seção sem Imagem de Fundo (usado em HomePage) */
 .background-div-no-image {
   width: 100vw;
