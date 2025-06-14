@@ -1,0 +1,410 @@
+/* ======================================= */
+/* Variáveis CSS               */
+/* ======================================= */
+:root {
+  /* Cores personalizadas e de tema */
+  --uff-navy: #001f3f; /* Azul Marinho Principal */
+  --uff-success: #198754; /* Verde Sucesso do Bootstrap */
+  --uff-success-hover: #28a745; /* Verde Sucesso para hover */
+  --uff-info: #17a2b8; /* Azul Info do Bootstrap */
+  --uff-info-hover: #117a8b; /* Azul Info para hover */
+  --uff-primary-blue: #007bff; /* Azul Primário do Bootstrap */
+  --uff-primary-blue-hover: #0056b3; /* Azul Primário para hover */
+
+  /* Cores de texto e fundo padrão Bootstrap para referência/reuso */
+  --bootstrap-gray-600: #6c757d;
+  --bootstrap-gray-200: #e9ecef;
+  --white: #ffffff;
+  --black: #000000;
+  --dark-text: #212529; /* Cor de texto mais escura */
+  --light-gray-border: #e9ecef;
+  --light-gray-bg: #f8f9fa; /* Para fundos muito claros */
+}
+
+/* ======================================= */
+/* Estilos Globais            */
+/* ======================================= */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Garante que padding e border sejam incluídos na largura/altura */
+}
+
+/* Estilos para texto em azul escuro */
+.texto-azul-escuro {
+  color: var(--uff-navy) !important;
+  font-size: 1.1em !important;
+}
+
+.texto-azul-escuro:hover {
+  color: rgb(56, 56, 117) !important; /* Mantenho a cor específica que você usou */
+  font-size: 1.1em !important;
+}
+
+/* ======================================= */
+/* Layout Geral              */
+/* ======================================= */
+
+/* Seção Principal com Imagem de Fundo (HomePage) */
+.background-div {
+  width: 100vw;
+  min-height: 500px; /* Altura mínima ajustável */
+  background-image: url("../public/soac.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-blend-mode: overlay; /* Efeito de blend para a cor de fundo */
+  background-color: rgb(21, 26, 36); /* Cor de fundo que se mistura com a imagem */
+  color: var(--white); /* Cor do texto dentro desta div */
+}
+
+/* Seção sem Imagem de Fundo (usado em HomePage) */
+.background-div-no-image {
+  width: 100vw;
+  background-color: rgba(27, 41, 69, 1); /* Azul escuro sólido */
+  color: var(--white); /* Cor do texto dentro desta div */
+}
+
+/* ======================================= */
+/* Links e Botões            */
+/* ======================================= */
+
+/* Link "Comece Agora" */
+.comece-agora-link {
+  color: var(--uff-success); /* Cor verde sucesso */
+  text-decoration: none; /* Remove sublinhado padrão */
+  position: relative;
+  display: inline-block;
+  padding-bottom: 5px; /* Espaço para o sublinhado animado */
+}
+
+.comece-agora-link:hover {
+  color: var(--uff-success-hover); /* Verde mais claro no hover */
+}
+
+/* Pseudo-elemento para o sublinhado animado */
+.comece-agora-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0; /* Começa com largura zero */
+  height: 2px;
+  background-color: currentColor; /* Usa a cor atual do texto do link */
+  transition: width 0.08s ease-in-out; /* Animação de largura */
+}
+
+.comece-agora-link:hover::after {
+  width: 100%; /* Expande para 100% no hover */
+}
+
+/* Links de navegação personalizados (se .nav-custom-link for diferente de .comece-agora-link) */
+.nav-custom-link {
+  text-decoration: none;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.nav-custom-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background-color: currentColor;
+  transition: width 0.08s ease-in-out;
+}
+
+.nav-custom-link:hover::after {
+  width: 100%;
+}
+
+/* Botão Personalizado: Fundo Branco, Letra Navy (Hover: Fundo Navy, Letra Branca) */
+.btn.btn-custom-navy-white {
+  color: var(--uff-navy);
+  background-color: var(--white);
+  border-color: var(--uff-navy);
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.btn.btn-custom-navy-white:hover {
+  color: var(--white);
+  background-color: var(--uff-navy);
+  border-color: var(--uff-navy);
+}
+
+.btn.btn-custom-navy-white:active,
+.btn.btn-custom-navy-white:focus {
+  color: var(--white);
+  background-color: var(--uff-navy);
+  border-color: var(--uff-navy);
+  box-shadow: 0 0 0 0.25rem rgba(0, 31, 63, 0.5); /* Sombra de foco com transparência da cor navy */
+}
+
+.btn.btn-custom-navy-white:disabled,
+.btn.btn-custom-navy-white.disabled {
+  color: var(--uff-navy);
+  background-color: var(--white);
+  border-color: var(--uff-navy);
+  opacity: 0.65;
+}
+
+
+/* ======================================= */
+/* Página de Login               */
+/* ======================================= */
+
+.login-page-container {
+  /* Reusa background-div para a imagem de fundo, ajusta o blend e cor de fundo */
+  background-blend-mode: multiply;
+  background-color: rgba(21, 26, 36, 0.9); /* Escurece para destacar o card de login */
+}
+
+.login-card {
+  background-color: rgba(255, 255, 255, 0.95); /* Fundo branco semi-transparente para o card */
+  max-width: 450px;
+  width: 90%;
+  padding: 30px;
+  border-radius: 8px; /* Adicionado para consistência */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+}
+
+.login-card .form-label {
+  display: block;
+  text-align: left;
+  font-weight: 500;
+  color: #343a40; /* Cor escura para o label */
+}
+
+.login-card .btn-primary {
+  background-color: var(--uff-primary-blue);
+  border-color: var(--uff-primary-blue);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.login-card .btn-primary:hover {
+  background-color: var(--uff-primary-blue-hover);
+  border-color: var(--uff-primary-blue-hover);
+}
+
+.login-card .text-info {
+  color: var(--uff-info) !important;
+  transition: color 0.3s ease;
+}
+
+.login-card .text-info:hover {
+  color: var(--uff-info-hover) !important;
+}
+
+
+/* ======================================= */
+/* Componente Card           */
+/* ======================================= */
+
+.card-custom {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  background-color: var(--white);
+  color: #333;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-custom:hover {
+  transform: translateY(-5px); /* Efeito de elevação no hover */
+}
+
+.card-image-container {
+  overflow: hidden;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  background-color: var(--bootstrap-gray-200); /* Cor de fundo para o container da imagem */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  height: 150px; /* Altura fixa para o container da imagem */
+}
+
+.card-img-top {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.card-body {
+  padding: 1.25rem;
+  flex-grow: 1; /* Permite que o body se expanda */
+}
+
+.card-title {
+  font-weight: bold;
+  color: var(--uff-navy);
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  color: var(--bootstrap-gray-600);
+}
+
+/* Overlay de cor e texto "Ir" para o Card */
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(25, 135, 84, 0.8); /* Cor success semi-transparente */
+  transform: translateX(-100%);
+  transition: transform 0.4s ease-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--white);
+  font-size: 1.5em;
+  font-weight: bold;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.card-custom:hover .card-overlay {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.card-overlay-text {
+  transition: opacity 0.2s ease 0.15s;
+}
+
+.card-custom:not(:hover) .card-overlay-text {
+  opacity: 0;
+}
+
+/* Ajustes para links nos cards (garante que todo o card seja clicável) */
+.text-decoration-none.text-dark {
+  display: block;
+  height: 100%;
+}
+
+.text-decoration-none.text-dark .card-custom {
+  height: 100%;
+}
+
+/* ======================================= */
+/* Lista de Eventos            */
+/* ======================================= */
+
+.event-list-container {
+  max-height: 400px; /* Altura máxima para rolagem em telas pequenas */
+  overflow-y: auto;
+  padding-right: 15px;
+  /* Removed duplicate scrollbar styles, they are below for all browsers */
+}
+
+.event-item {
+  border: 1px solid var(--light-gray-border);
+  background-color: var(--white);
+  color: var(--dark-text);
+  padding: 1rem; /* Usando rem para padding */
+  margin-bottom: 1rem; /* Espaçamento entre itens */
+  border-radius: 0.25rem; /* Bordas levemente arredondadas */
+}
+
+.event-item .event-title {
+  color: var(--uff-navy);
+  font-weight: bold;
+  margin-bottom: 0.25rem; /* Espaço menor abaixo do título */
+}
+
+.event-item .event-date {
+  color: var(--bootstrap-gray-600);
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+.event-item .event-description {
+  color: #343a40; /* Manter a cor específica que você usou */
+}
+
+/* ======================================= */
+/* Barras de Rolagem         */
+/* ======================================= */
+/* Estilização para navegadores baseados em WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px; /* Largura da barra de rolagem */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Cor do fundo da barra de rolagem */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888; /* Cor do "polegar" da barra de rolagem */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Cor do "polegar" no hover */
+}
+
+/* ======================================= */
+/* Media Queries (Responsividade) */
+/* ======================================= */
+
+@media (max-width: 768px) { /* Para tablets e celulares (md breakpoint) */
+  .background-div {
+    min-height: 350px; /* Reduz a altura em telas menores */
+  }
+
+  /* Removendo a altura fixa para o container da imagem em telas menores,
+     permitindo que ela se ajuste ao conteúdo, se necessário, ou definindo uma max-height.
+     Para o carrossel, a altura é gerenciada pelos cards individuais. */
+  .card-image-container {
+    height: 120px; /* Altura ajustada para telas menores */
+    padding: 10px;
+  }
+
+  /* Para a seção de eventos */
+  .event-list-container {
+    max-height: 300px; /* Reduz a altura da rolagem em telas menores */
+  }
+}
+
+@media (max-width: 576px) { /* Para celulares menores (sm breakpoint) */
+  .background-div {
+    min-height: 250px; /* Reduz ainda mais a altura */
+  }
+
+  .card-image-container {
+    height: 100px; /* Mais ajuste para telas muito pequenas */
+  }
+}
+
+/* Para telas GRANDES (md e acima) - Sincronização de altura de eventos */
+@media (min-width: 768px) {
+  .event-list-container {
+    max-height: unset; /* Remove a altura máxima fixa em telas maiores */
+    height: 100%;       /* Ocupa 100% da altura da coluna pai */
+  }
+
+  .col-md-6.image-column {
+     min-height: 400px; /* Garante uma altura mínima para a coluna da imagem em md+ */
+     /* Pode ajustar para 'auto' se a imagem sempre definir a altura */
+     /* ou para uma altura específica que se alinhe com o conteúdo da lista */
+  }
+
+  /* Garante que as colunas da seção de eventos usem flexbox para sincronização de altura */
+  .row.d-md-flex {
+    align-items: stretch; /* Garante que as colunas tenham a mesma altura */
+  }
+}
