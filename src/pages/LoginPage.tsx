@@ -1,47 +1,103 @@
-import { useState } from 'react'; // Importe useState
+// src/pages/LoginPage.tsx
+import { useState, useEffect } from 'react';
 import { useForm, type FieldError } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useUserStore } from '../store/userStore';
+import { usuarioData, type Usuario } from '../interfaces/Usuario';
 
 const LoginPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Estado para controlar a exibição do spinner
   const [isLoading, setIsLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'danger'>('success');
+
+  // Obtenha a função de login do seu store
+  const login = useUserStore((state) => state.login);
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated); // Opcional: redirecionar se já logado
 
   const from = location.state?.from || '/dashboard';
 
-  const onSubmit = async (data: any) => { // Tornar a função assíncrona
-    setIsLoading(true); // Ativa o spinner
+  // Redireciona se o usuário já estiver autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
-    console.log("Dados do formulário de login:", data);
+  useEffect(() => {
+    let timer: number; 
+    if (showAlert) {
+      timer = setTimeout(() => {
+        setShowAlert(false);
+        setAlertMessage('');
+      }, 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [showAlert]);
 
-    // Simula uma requisição de rede de 1 segundo
+  const onSubmit = async (data: any) => {
+    setIsLoading(true);
+    setShowAlert(false);
+
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // --- Lógica de Autenticação (Exemplo) ---
-    // Em um cenário real, você faria uma chamada de API aqui.
-    // Ex: const response = await fetch('/api/login', { method: 'POST', body: JSON.stringify(data) });
-    //     const result = await response.json();
-    //     const authenticationSuccessful = result.success;
+    const foundUser = usuarioData.find(
+      (user: Usuario) => user.email === data.email && user.senha === data.password
+    );
 
-    const authenticationSuccessful = true; // Simule o sucesso do login para o exemplo
+    const authenticationSuccessful = !!foundUser;
 
-    setIsLoading(false); // Desativa o spinner após a "resposta"
+    setIsLoading(false);
 
     if (authenticationSuccessful) {
-      alert(`Login bem-sucedido para: ${data.email}`);
-      navigate(from, { replace: true });
+      // Chame a função de login do store para salvar o usuário
+      login(foundUser as Usuario); // 'as Usuario' é seguro aqui pois foundUser é garantido
+      
+      setAlertMessage(`Login bem-sucedido para: ${foundUser?.nome}! Redirecionando...`);
+      setAlertType('success');
+      setShowAlert(true);
+      
+      // O redirecionamento será tratado pelo useEffect de isAuthenticated
+      
     } else {
-      alert("Credenciais inválidas. Tente novamente.");
+      setAlertMessage("Credenciais inválidas. Verifique seu e-mail e senha e tente novamente.");
+      setAlertType('danger');
+      setShowAlert(true);
     }
   };
+
+  // Se o usuário já estiver autenticado (e o useEffect ainda não redirecionou),
+  // pode-se renderizar algo diferente ou nada, esperando o redirecionamento.
+  if (isAuthenticated) {
+    return (
+      <div className="login-page-container d-flex justify-content-center align-items-center vh-100 background-div">
+        <div className="login-card p-4 p-md-5 rounded shadow-lg text-center">
+          <h2 style={{ color: '#001f3f' }}>Redirecionando...</h2>
+          <p>Você já está logado.</p>
+          <div className="spinner-border text-success" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-page-container d-flex justify-content-center align-items-center vh-100 background-div">
       <div className="login-card p-4 p-md-5 rounded shadow-lg text-center">
         <h2 className="mb-4" style={{ color: '#001f3f', fontWeight: 'bold' }}>Login SOAC</h2>
+        
+        {showAlert && (
+          <div className={`alert alert-${alertType} alert-dismissible fade show`} role="alert">
+            {alertMessage}
+            <button type="button" className="btn-close" onClick={() => setShowAlert(false)} aria-label="Close"></button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-3">
             <label htmlFor="email" className="form-label text-muted">E-mail @id.uff.br</label>
@@ -57,7 +113,7 @@ const LoginPage = () => {
                   message: 'Por favor, insira um e-mail válido @id.uff.br',
                 },
               })}
-              disabled={isLoading} // Desabilita o campo enquanto carrega
+              disabled={isLoading}
             />
             {errors.email && <div className="invalid-feedback">{(errors.email as FieldError).message}</div>}
           </div>
@@ -72,7 +128,7 @@ const LoginPage = () => {
               {...register('password', {
                 required: 'Senha é obrigatória.',
               })}
-              disabled={isLoading} // Desabilita o campo enquanto carrega
+              disabled={isLoading}
             />
             {errors.password && <div className="invalid-feedback">{(errors.password as FieldError).message}</div>}
           </div>
@@ -80,27 +136,25 @@ const LoginPage = () => {
           <button
             type="submit"
             className="btn btn-outline-success w-100 mb-3"
-            disabled={isLoading} // Desabilita o botão enquanto carrega
+            disabled={isLoading}
           >
             {isLoading ? (
-              // Exibe o spinner se isLoading for true
               <>
                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 <span className="ms-2">Carregando...</span>
               </>
             ) : (
-              // Exibe o texto normal do botão
               'Entrar'
             )}
           </button>
 
           <p className="mb-0">
             <Link
-              to="/forgot-password"
+              to="/esqueci-a-senha"
               className="nav-custom-link"
               style={{color: "navy"}}
-              aria-disabled={isLoading} // Desabilita o link visualmente
-              onClick={(e) => isLoading && e.preventDefault()} // Impede clique se estiver carregando
+              aria-disabled={isLoading}
+              onClick={(e) => isLoading && e.preventDefault()}
             >
               Esqueceu sua senha ou usuário?
             </Link>

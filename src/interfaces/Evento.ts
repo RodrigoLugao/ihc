@@ -1,8 +1,7 @@
-
-
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { type Atividade, atividadesData } from './Atividade';
+import { type Atividade } from './Atividade';
+import { atividadesData } from '../data/atividadesData';
 
 dayjs.extend(customParseFormat);
 

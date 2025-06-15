@@ -55,7 +55,7 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({ activities }) => {
             </p>
             <p className="mt-2 d-flex align-items-center gap-3">
               <span className="text-dark">Participou dessa Atividade?</span>
-              <Link className='btn btn-outline-success btn-sm' to="/dashboard">Registre ela no Organizador de Atividades</Link>
+              <Link className='btn btn-outline-success btn-sm' to="/dashboard">Registre no Organizador de Atividades</Link>
             </p>
           </div>
         ))}

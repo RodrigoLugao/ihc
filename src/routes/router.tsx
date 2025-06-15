@@ -7,6 +7,10 @@ import AtividadesPage from "../pages/AtividadesPage";
 import FAQPage from "../pages/FAQPage";
 import EventosPage from "../pages/EventosPage";
 import EventoSoloPage from "../pages/EventoPage";
+import DashboardPage from "../pages/DashboardPage";
+import SecretPage from "../pages/SecretPage";
+import EsqueciSenhaPage from "../pages/EsqueciSenhaPage";
+import RegistrarAtividadePage from "../pages/RegistrarAtividadePage";
 
 const router = createBrowserRouter(
   [
@@ -36,8 +40,24 @@ const router = createBrowserRouter(
           element: <FAQPage />,
         },
         {
+          path: "dashboard",
+          element: <DashboardPage />,
+        },
+        {
+          path: "secret",
+          element: <SecretPage />,
+        },
+        {
           path: "login",
           element: <LoginPage />,
+        },
+        {
+          path: "registrar-atividade",
+          element: <RegistrarAtividadePage/>
+        },
+        {
+          path: "esqueci-a-senha",
+          element: <EsqueciSenhaPage />,
         },
       ],
     },
