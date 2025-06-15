@@ -1,5 +1,5 @@
 // src/components/FormBuscaEventos.tsx
-import React, { useEffect } from 'react'; // Adicionado useEffect
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { CurriculoTipo } from '../utils/acutils';
 
@@ -14,19 +14,20 @@ export interface EventSearchForm {
   categoriesInput: string;
   categories: string[];
   curriculoType: CurriculoTipo;
+  // NOVO CAMPO: Categorias para EXCLUIR
+  excludeCategoriesInput: string; // String bruta do input
+  excludeCategories: string[];    // Array processado de categorias a excluir
 }
 
 interface FormBuscaEventosProps {
   onSearch: (data: EventSearchForm) => void;
   onClear: () => void;
-  // Nova prop para receber os dados iniciais, pode ser null se não houver
-  initialFormData: EventSearchForm | null; 
+  initialFormData: EventSearchForm | null;
 }
 
 const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, initialFormData }) => {
   const { register, handleSubmit, reset } = useForm<EventSearchForm>({
     defaultValues: {
-      // Define os valores padrão com base em initialFormData, se existir
       searchTerm: initialFormData?.searchTerm || '',
       startDate: initialFormData?.startDate || '',
       endDate: initialFormData?.endDate || '',
@@ -36,16 +37,16 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
       categoriesInput: initialFormData?.categoriesInput || '',
       categories: initialFormData?.categories || [],
       curriculoType: initialFormData?.curriculoType || 'curriculoNovo',
+      // NOVO CAMPO: Define o valor padrão para excludeCategoriesInput
+      excludeCategoriesInput: initialFormData?.excludeCategoriesInput || '',
+      excludeCategories: initialFormData?.excludeCategories || [],
     }
   });
 
-  // Efeito para resetar o formulário sempre que initialFormData mudar
   useEffect(() => {
-    // Apenas reseta se initialFormData não for null
     if (initialFormData) {
       reset(initialFormData);
     } else {
-      // Se initialFormData for null, reseta para os valores padrão "limpos"
       reset({
         searchTerm: '',
         startDate: '',
@@ -55,18 +56,26 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
         maxHours: '',
         categoriesInput: '',
         categories: [],
-        curriculoType: 'curriculoNovo'
+        curriculoType: 'curriculoNovo',
+        // NOVO CAMPO: Resetar excludeCategoriesInput
+        excludeCategoriesInput: '',
+        excludeCategories: [],
       });
     }
-  }, [initialFormData, reset]); // Depende de initialFormData e da função reset
+  }, [initialFormData, reset]);
 
-  // Determina se o campo de seleção de currículo deve ser escondido
-  // Ele será escondido se initialFormData não for null e tiver um curriculoType definido
   const hideCurriculoTypeSelect = initialFormData !== null && initialFormData.curriculoType !== undefined;
 
-
   const onSubmit = (data: EventSearchForm) => {
+    // Processa categoriesInput
     data.categories = data.categoriesInput
+      .split(',')
+      .map(category => category.trim())
+      .filter(category => category.length > 0)
+      .map(category => category.toLowerCase());
+
+    // NOVO: Processa excludeCategoriesInput
+    data.excludeCategories = data.excludeCategoriesInput
       .split(',')
       .map(category => category.trim())
       .filter(category => category.length > 0)
@@ -85,7 +94,10 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
       maxHours: '',
       categoriesInput: '',
       categories: [],
-      curriculoType: 'curriculoNovo' // Sempre reseta para o currículo novo padrão
+      curriculoType: 'curriculoNovo',
+      // NOVO CAMPO: Limpar excludeCategoriesInput
+      excludeCategoriesInput: '',
+      excludeCategories: [],
     });
     onClear();
   };
@@ -142,8 +154,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
         {/* Seção de Atividades Complementares */}
         <div className="mb-4">
           <h4 className="mb-3" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Filtros de Atividades Complementares</h4>
-          
-          {/* Campo de seleção de currículo é renderizado apenas se hideCurriculoTypeSelect for false */}
+
           {!hideCurriculoTypeSelect && (
             <div className="mb-3">
               <label htmlFor="curriculoType" className="form-label text-light">Tipo de Currículo para AC:</label>
@@ -181,7 +192,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
             </div>
           </div>
           <div className="mb-4">
-            <label htmlFor="categoriesInput" className="form-label text-light">Categorias de Atividade AC:</label>
+            <label htmlFor="categoriesInput" className="form-label text-light">Incluir Categorias de Atividade AC:</label>
             <input
               type="text"
               className="form-control"
@@ -190,11 +201,26 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
               {...register('categoriesInput')}
             />
             <small className="form-text text-light opacity-75">
-              Separe múltiplas categorias por vírgula (ex: "Palestra, disciplina isolada"). A busca não diferencia maiúsculas de minúsculas e é parcial.
+              Separe múltiplas categorias por vírgula. A busca não diferencia maiúsculas de minúsculas e é parcial.
+            </small>
+          </div>
+
+          {/* NOVO CAMPO: Excluir Categorias */}
+          <div className="mb-4">
+            <label htmlFor="excludeCategoriesInput" className="form-label text-light">Excluir Categorias de Atividade AC:</label>
+            <input
+              type="text"
+              className="form-control"
+              id="excludeCategoriesInput"
+              placeholder="Ex: Esporte, Cultura, Voluntariado"
+              {...register('excludeCategoriesInput')}
+            />
+            <small className="form-text text-light opacity-75">
+              Separe múltiplas categorias por vírgula para excluí-las dos resultados.
             </small>
           </div>
         </div>
-        
+
         <button type="submit" className="btn btn-success w-100">Buscar</button>
         <button
           type="button"

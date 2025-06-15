@@ -39,7 +39,7 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({ activities }) => {
               <small><b>Descrição:</b> {activity.descricao || 'Sem descrição.'}</small>
             </p>
             <p className="mb-1 text-secondary">
-              <small><b>Tipo de Atividade:</b> {activity.categoria?.tipo || 'Não especificado'}</small>
+              <small><b>Categoria de Atividade:</b> {activity.categoria?.tipo || 'Não especificado'}</small>
             </p>
             <p className="mb-1 text-secondary">
               <small><b>Responsável:</b> {activity.responsavel || 'Não especificado'}</small>

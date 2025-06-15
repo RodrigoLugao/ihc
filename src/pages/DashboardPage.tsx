@@ -40,6 +40,35 @@ const DashboardPage = () => {
     return calcularTotalHorasACByUsuario(usuario.id, tipoCurriculo);
   }, [usuario]);
 
+  // >>>>>>>>>>> NOVO: useMemo separado para as categorias únicas <<<<<<<<<<<
+  const categoriasDoUsuario = useMemo(() => {
+    if (!usuario) {
+      return [];
+    }
+
+    const atividadesConcluidasDoUsuario = getAtividadesConcluidasByUsuario(
+      usuario.id
+    );
+    const uniqueCategories = new Set<string>(); // Usamos um Set para garantir unicidade
+
+    atividadesConcluidasDoUsuario.forEach((acConcluida) => {
+      const atividade = atividadesData.find(
+        (atv) => atv.id === acConcluida.idAtividade
+      );
+      if (atividade && atividade.categoria) {
+        uniqueCategories.add(atividade.categoria.tipo);
+      }
+    });
+
+    return Array.from(uniqueCategories); // Converte o Set de volta para um Array
+  }, [usuario]); // Depende apenas do objeto 'usuario'
+
+  console.log(
+    "Categorias do usuário com atividades (fora do useMemo do gráfico):",
+    categoriasDoUsuario
+  );
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
   // Prepara os dados para o gráfico de pizza, incluindo as horas restantes
   const pieChartData = useMemo(() => {
     if (!usuario) {
@@ -159,11 +188,11 @@ const DashboardPage = () => {
   return (
     <div className="background-div">
       <div className="container pt-5" style={{ minHeight: "724px" }}>
-        {usuario ? (
+        {usuario && horasACCalculadas > 0 ? (
           <>
             <h1>Olá, {usuario?.nome}</h1>
             <p>
-              Você completou <b>{horasACCalculadas.toFixed(2)} horas</b> de
+              Você completou <b>{horasACCalculadas.toFixed(0)} horas</b> de
               Atividades Complementares.
             </p>
             <p>
@@ -173,7 +202,7 @@ const DashboardPage = () => {
                   TOTAL_HORAS_AC_NECESSARIAS[
                     usuario.curriculoNovo ? "curriculoNovo" : "curriculoAntigo"
                   ] - horasACCalculadas
-                ).toFixed(2)}{" "}
+                ).toFixed(0)}{" "}
                 horas
               </b>{" "}
               para completar o requisito.
@@ -195,10 +224,11 @@ const DashboardPage = () => {
                 </p>
               )}
             </div>
+
           </>
         ) : (
           <>
-            <h1>Olá, visitante</h1>
+            <h1>Olá, {usuario ? usuario.nome : "visitante"}</h1>
             <p>Você ainda não possui atividades complementares registradas.</p>
             <p>
               Deseja{" "}
@@ -214,7 +244,8 @@ const DashboardPage = () => {
                 className="comece-agora-link text-decoration-none"
               >
                 Descobrir novas atividades complementares
-              </Link> ?
+              </Link>{" "}
+              ?
             </p>
             <p>
               Ou, se preferir, pode{" "}
@@ -224,13 +255,15 @@ const DashboardPage = () => {
               >
                 Ver as regras de atividades complementares
               </Link>{" "}
-              ou{" "}
+              e{" "}
               <Link
                 to="/eventos"
                 className="comece-agora-link text-decoration-none"
               >
-                Preencher o formulário de atividades complementares com a nossa ajuda
-              </Link> .
+                Preencher o formulário de atividades complementares com a nossa
+                ajuda
+              </Link>{" "}
+              .
             </p>
           </>
         )}
