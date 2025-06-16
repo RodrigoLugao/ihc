@@ -16,10 +16,10 @@ export interface Atividade {
   nome: string;
   descricao: string;
   inicio: Date;
-  fim: Date;
+  fim?: Date;
   responsavel: string;
   // NOVO CAMPO ADICIONADO:
-  cargaHoraria: number; // Horas totais da atividade em si (não as horas/AC)
+  duracao: number; // Periodo que o aluno passou realizando a atividade
   categoria?: CategoriaAtividade; // O objeto completo da categoria
 }
 

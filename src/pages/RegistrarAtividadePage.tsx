@@ -1,5 +1,5 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
-// import type { Atividade } from "../interfaces/Atividade"; // Removido, não usado diretamente aqui para evitar conflito de nome
+import { useState, useEffect } from "react"; // Importar useState e useEffect
 import { categoriasData, type CategoriaAtividade } from "../interfaces/Categoria";
 
 interface ActivityFormInputs {
@@ -8,8 +8,8 @@ interface ActivityFormInputs {
   inicio: string;
   fim: string;
   responsavel: string;
-  cargaHoraria: number;
-  categoriaTipo: string;
+  duracao: number;
+  categoriaNome: string;
   certificado?: FileList;
 }
 
@@ -18,20 +18,29 @@ const RegistrarAtividadePage = () => {
     register,
     handleSubmit,
     formState: { errors },
-    reset, // <-- Adicionado: Desestrutura a função reset do useForm
+    reset,
+    watch, // Importar a função watch
   } = useForm<ActivityFormInputs>();
 
-  // NOTE: Assuming categoriasData is an array of CategoriaAtividade objects
-  // If categoriasData is not available, you might need to import `atividadesData`
-  // and then extract unique categories from it, as in the previous example.
-  // const allCategories = Array.from(new Set(atividadesData.map(atividade => JSON.stringify(atividade.categoria)))).map(str => JSON.parse(str as string));
+  // >>> Monitorar a seleção da categoria em tempo real
+  const selectedCategoryName = watch("categoriaNome");
+  // >>> Estado para armazenar o objeto CategoriaAtividade completo
+  const [selectedCategory, setSelectedCategory] = useState<CategoriaAtividade | undefined>(undefined);
 
+  // >>> useEffect para atualizar a categoria selecionada quando selectedCategoryName mudar
+  useEffect(() => {
+    if (selectedCategoryName) {
+      const foundCategory = categoriasData.find(
+        (cat) => cat.nome === selectedCategoryName
+      );
+      setSelectedCategory(foundCategory);
+    } else {
+      setSelectedCategory(undefined); // Limpar se nenhuma categoria for selecionada
+    }
+  }, [selectedCategoryName]);
 
   const onSubmit: SubmitHandler<ActivityFormInputs> = (data) => {
-    const selectedCategory = categoriasData.find( // Use categoriasData diretamente
-      (cat: CategoriaAtividade) => cat.tipo === data.categoriaTipo
-    );
-
+    // A validação se selectedCategory existe já é feita pelo useEffect/estado
     if (!selectedCategory) {
       alert("Por favor, selecione uma categoria válida.");
       return;
@@ -39,42 +48,40 @@ const RegistrarAtividadePage = () => {
 
     const newId = Date.now();
 
-    const novaAtividade = { // type Atividade
+    const novaAtividade = {
       id: newId,
       nome: data.nome,
       descricao: data.descricao,
       inicio: new Date(data.inicio),
-      fim: new Date(data.fim),
+      fim: data.fim ? new Date(data.fim) : undefined,
       responsavel: data.responsavel,
-      cargaHoraria: Number(data.cargaHoraria),
-      categoria: selectedCategory,
+      duracao: Number(data.duracao),
+      categoria: selectedCategory, // Passar o objeto completo da categoria
     };
 
     console.log("Dados da Nova Atividade (pronto para enviar):", novaAtividade);
     console.log(
       "Certificado (se selecionado):",
-      data.certificado ? data.certificado[0] : "Nenhum"
+      data.certificado && data.certificado.length > 0 ? data.certificado[0] : "Nenhum"
     );
 
     alert("Formulário preenchido e dados logados no console!");
-    reset(); // <-- Chamada simples para resetar todos os campos para os valores padrão (vazios neste caso)
-             // Ou resetar para valores específicos, como mostrado abaixo.
+    reset(); // Resetar o formulário
+    setSelectedCategory(undefined); // Resetar a categoria selecionada também
   };
 
-  // --- Função handleClear corrigida ---
   const handleClear = () => {
-    reset({ // Reseta o formulário com valores vazios para todos os campos relevantes
+    reset({
       nome: '',
       descricao: '',
       inicio: '',
       fim: '',
       responsavel: '',
-      cargaHoraria: 0, // Ou '' se preferir que o campo numérico comece vazio
-      categoriaTipo: '',
-      certificado: undefined, // Para limpar o input de arquivo
+      duracao: 0,
+      categoriaNome: '',
+      certificado: undefined,
     });
-    // Se você tinha uma função 'onClear' externa que precisava ser chamada, adicione-a aqui.
-    // Caso contrário, remova a linha 'onClear();'
+    setSelectedCategory(undefined); // Limpar a categoria selecionada ao limpar o formulário
   };
 
   return (
@@ -95,6 +102,7 @@ const RegistrarAtividadePage = () => {
               type="text"
               className={`form-control ${errors.nome ? "is-invalid" : ""}`}
               id="nome"
+              placeholder="Nome da Atividade realizada. Ex.: Workshop: Redação de Artigos Científicos"
               {...register("nome", { required: "Nome é obrigatório." })}
             />
             {errors.nome && (
@@ -109,8 +117,9 @@ const RegistrarAtividadePage = () => {
             <textarea
               className={`form-control ${errors.descricao ? "is-invalid" : ""}`}
               id="descricao"
+              placeholder="Descrição das atividades realizadas. Ex: Orientações práticas para a escrita e formatação de artigos científicos. "
               rows={3}
-              {...register("descricao")} // Adicione validação 'required' se necessário
+              {...register("descricao")}
             ></textarea>
             {errors.descricao && (
               <div className="invalid-feedback">{errors.descricao.message}</div>
@@ -143,9 +152,8 @@ const RegistrarAtividadePage = () => {
                 className={`form-control ${errors.fim ? "is-invalid" : ""}`}
                 id="fim"
                 {...register("fim", {
-                  required: "Data de fim é obrigatória.",
                   validate: (value, formValues) =>
-                    value >= formValues.inicio ||
+                    !value || value >= formValues.inicio ||
                     "Data de fim deve ser igual ou posterior à data de início.",
                 })}
               />
@@ -164,6 +172,7 @@ const RegistrarAtividadePage = () => {
               className={`form-control ${
                 errors.responsavel ? "is-invalid" : ""
               }`}
+              placeholder="Indivíduo ou instituição responsável pela atividade."
               id="responsavel"
               {...register("responsavel", {
                 required: "Responsável é obrigatório.",
@@ -176,54 +185,67 @@ const RegistrarAtividadePage = () => {
             )}
           </div>
 
+          {/* >>> Categoria antes da Duração */}
           <div className="mb-3">
-            <label htmlFor="cargaHoraria" className="form-label">
-              Carga Horária Total da Atividade (horas)
-            </label>
-            <input
-              type="number"
-              className={`form-control ${
-                errors.cargaHoraria ? "is-invalid" : ""
-              }`}
-              id="cargaHoraria"
-              {...register("cargaHoraria", {
-                required: "Carga horária é obrigatória.",
-                min: { value: 1, message: "Carga horária deve ser positiva." },
-                valueAsNumber: true,
-              })}
-              min="1"
-            />
-            {errors.cargaHoraria && (
-              <div className="invalid-feedback">
-                {errors.cargaHoraria.message}
-              </div>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="categoriaTipo" className="form-label">
+            <label htmlFor="categoriaNome" className="form-label">
               Categoria da Atividade
             </label>
             <select
               className={`form-select ${
-                errors.categoriaTipo ? "is-invalid" : ""
+                errors.categoriaNome ? "is-invalid" : ""
               }`}
-              id="categoriaTipo"
-              {...register("categoriaTipo", {
+              id="categoriaNome"
+              {...register("categoriaNome", {
                 required: "Categoria é obrigatória.",
               })}
             >
               <option value="">Selecione uma categoria...</option>
-              {categoriasData.map((cat: CategoriaAtividade, index: number) => ( // Usando categoriasData
-                <option key={index} value={cat.tipo}>
-                  {cat.tipo}
+              {categoriasData.map((cat: CategoriaAtividade, index: number) => (
+                <option key={index} value={cat.nome}>
+                  {cat.nome}
                 </option>
               ))}
             </select>
-            {errors.categoriaTipo && (
+            {errors.categoriaNome && (
               <div className="invalid-feedback">
-                {errors.categoriaTipo.message}
+                {errors.categoriaNome.message}
               </div>
+            )}
+          </div>
+
+          {/* >>> Campo de duração condicional e dinâmico */}
+          <div className="mb-3">
+            <label htmlFor="duracao" className="form-label">
+              {selectedCategory
+                ? `Duração da Atividade (em ${selectedCategory.unidadeDeTempo})`
+                : "Duração da Atividade"}
+            </label>
+            <input
+              type="number"
+              className={`form-control ${
+                errors.duracao ? "is-invalid" : ""
+              }`}
+              id="duracao"
+              {...register("duracao", {
+                required: selectedCategory ? "Duração é obrigatória." : false, // Torna obrigatório apenas se a categoria for selecionada
+                min: { value: 1, message: "Duração deve ser positiva." },
+                valueAsNumber: true,
+              })}
+              min="1"
+              disabled={!selectedCategory} // Desabilita se nenhuma categoria for selecionada
+              placeholder={
+                !selectedCategory ? "Escolha a categoria primeiro" : ""
+              }
+            />
+            {errors.duracao && (
+              <div className="invalid-feedback">
+                {errors.duracao.message}
+              </div>
+            )}
+            {!selectedCategory && (
+              <small className="form-text text-muted">
+                Por favor, selecione uma categoria para habilitar este campo.
+              </small>
             )}
           </div>
 
@@ -245,7 +267,7 @@ const RegistrarAtividadePage = () => {
               </div>
             )}
           </div>
-          <div className="d-flex justify-content-between mt-4"> {/* Ajuste aqui para posicionar os botões */}
+          <div className="d-flex justify-content-between mt-4">
             <button type="button" onClick={handleClear} className="btn btn-danger">
               Limpar Formulário
             </button>

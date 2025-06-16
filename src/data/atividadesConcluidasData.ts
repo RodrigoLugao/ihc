@@ -2,17 +2,17 @@ import type { AtividadeConcluida } from "../interfaces/AtivdadeConcluida";
 
 export const atividadesConcluidasData: AtividadeConcluida[] = [
   // Atividades concluídas existentes (se houver)
-  {
+  /* {
     idAtividade: 1, // Iniciação Científica (1 ano)
     idUsuario: 4, // Marcelo Villa
     comprovante: "certificado_ic_marcelo_2022_2023.pdf",
   },
-  {
-    idAtividade: 2, // Membro da Empresa Júnior
+  { */
+   /*  idAtividade: 2, // Membro da Empresa Júnior
     idUsuario: 4,
     comprovante: "declaracao_empresa_junior_marcelo.pdf",
-  },
-  {
+  },*/
+  { 
     idAtividade: 3, // Palestra: A Evolução da IA
     idUsuario: 4,
     comprovante: "certificado_palestra_ia_marcelo.pdf",

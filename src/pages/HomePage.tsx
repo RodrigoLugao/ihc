@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import Card from "../components/Card"; // Certifique-se de que o caminho está correto
 import { eventData } from "../interfaces/Evento"; // Importa eventData do arquivo Evento.ts
 
-import dayjs from 'dayjs'; // Import dayjs
-import 'dayjs/locale/pt-br'; // Import pt-br locale for dayjs
-dayjs.locale('pt-br'); // Set dayjs locale to pt-br
+import dayjs from "dayjs"; // Import dayjs
+import "dayjs/locale/pt-br"; // Import pt-br locale for dayjs
+dayjs.locale("pt-br"); // Set dayjs locale to pt-br
 
 const HomePage = () => {
   // Dados dos cards para facilitar a renderização e reutilização
@@ -175,7 +175,14 @@ const HomePage = () => {
             Próximos Eventos:
           </h2>
 
-          <div className="row pt-5 pb-5 bg-light rounded shadow-sm">
+          <div className="row pt-3 pb-5 bg-light rounded shadow-sm">
+            <Link
+              className="comece-agora-link col-2 text-decoration-none mb-2  mx-2"
+              to="/eventos"
+              style={{fontSize: "1.25em"}}
+            > Ver Todos <i className="bi bi-chevron-right"></i>
+            </Link>
+            <div className="col-12"></div>
             <div className="col-12 col-md-6">
               <div className="event-list-container">
                 {eventData.map((event) => (
@@ -184,13 +191,14 @@ const HomePage = () => {
                       <Link
                         className="text-decoration-none"
                         style={{ color: "inherit" }}
-                        to={`/eventos/${event.slug}`} 
+                        to={`/eventos/${event.slug}`}
                       >
                         {event.name}{" "}
                       </Link>
                       <span className="event-date text-muted fst-italic ms-2">
                         {/* Fixed: Use startDate and endDate with Day.js for formatting */}
-                        - {dayjs(event.startDate).format('DD/MM/YYYY HH:mm')} até {dayjs(event.endDate).format('DD/MM/YYYY HH:mm')}
+                        - {dayjs(event.startDate).format("DD/MM/YYYY HH:mm")}{" "}
+                        até {dayjs(event.endDate).format("DD/MM/YYYY HH:mm")}
                       </span>
                     </h5>
                     <p className="event-description text-secondary mb-0">
@@ -200,19 +208,13 @@ const HomePage = () => {
                       {event.description}
                     </p>
                     <Link
-                        className="btn btn-outline-success"
-                        to={`/eventos/${event.slug}`} 
-                      >
-                        Ver Evento
-                      </Link>
+                      className="btn btn-outline-success"
+                      to={`/eventos/${event.slug}`}
+                    >
+                      Ver Evento
+                    </Link>
                   </div>
                 ))}
-                <Link
-                  className="comece-agora-link text-decoration-none"
-                  to="/eventos"
-                >
-                  Mais Eventos <i className="bi bi-chevron-right"></i>
-                </Link>
               </div>
             </div>
             <div className="col-md-6 d-none d-md-block">

@@ -11,6 +11,7 @@ import DashboardPage from "../pages/DashboardPage";
 import SecretPage from "../pages/SecretPage";
 import EsqueciSenhaPage from "../pages/EsqueciSenhaPage";
 import RegistrarAtividadePage from "../pages/RegistrarAtividadePage";
+import VisaoGeralPage from "../pages/VisaoGeralPage";
 
 const router = createBrowserRouter(
   [
@@ -42,6 +43,9 @@ const router = createBrowserRouter(
         {
           path: "dashboard",
           element: <DashboardPage />,
+          children: [
+            { index: true, element: <VisaoGeralPage /> },
+          ],
         },
         {
           path: "secret",

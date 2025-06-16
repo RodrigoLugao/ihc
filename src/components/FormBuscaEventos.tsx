@@ -1,7 +1,9 @@
 // src/components/FormBuscaEventos.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react'; // Adicionado useMemo
 import { useForm } from 'react-hook-form';
-import type { CurriculoTipo } from '../utils/acutils';
+import type { CurriculoTipo } from '../utils/acutils'; // Certifique-se de que este caminho está correto
+import { categoriasData } from '../interfaces/Categoria';
+
 
 // Interface para os dados do formulário de busca
 export interface EventSearchForm {
@@ -11,12 +13,9 @@ export interface EventSearchForm {
   location: string;
   minHours: number | '';
   maxHours: number | '';
-  categoriesInput: string;
   categories: string[];
   curriculoType: CurriculoTipo;
-  // NOVO CAMPO: Categorias para EXCLUIR
-  excludeCategoriesInput: string; // String bruta do input
-  excludeCategories: string[];    // Array processado de categorias a excluir
+  excludeCategories: string[];
 }
 
 interface FormBuscaEventosProps {
@@ -25,27 +24,61 @@ interface FormBuscaEventosProps {
   initialFormData: EventSearchForm | null;
 }
 
+// Componente Badge para reutilização
+interface BadgeProps {
+  text: string;
+  onRemove: () => void;
+  maxLength?: number;
+  red?: boolean;
+}
+
+const CategoryBadge: React.FC<BadgeProps> = ({ text, onRemove, maxLength = 25, red = false }) => {
+  const truncatedText = text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  return (
+    <span
+      className={`badge bg-${red? "danger": "primary"} text-white d-inline-flex align-items-center me-2 mb-2 p-2`}
+      title={text} // Tooltip com o nome completo
+      style={{ cursor: 'pointer' }}
+    >
+      {truncatedText}
+      <button
+        type="button"
+        className="btn-close btn-close-white ms-2"
+        aria-label="Remover"
+        onClick={onRemove}
+      ></button>
+    </span>
+  );
+};
+
 const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, initialFormData }) => {
-  const { register, handleSubmit, reset } = useForm<EventSearchForm>({
+  const [selectedIncludeCategories, setSelectedIncludeCategories] = useState<string[]>([]);
+  const [selectedExcludeCategories, setSelectedExcludeCategories] = useState<string[]>([]);
+
+  const { register, handleSubmit, reset } = useForm<Omit<EventSearchForm, 'categories' | 'excludeCategories'>>({
     defaultValues: {
-      searchTerm: initialFormData?.searchTerm || '',
-      startDate: initialFormData?.startDate || '',
-      endDate: initialFormData?.endDate || '',
-      location: initialFormData?.location || '',
-      minHours: initialFormData?.minHours || '',
-      maxHours: initialFormData?.maxHours || '',
-      categoriesInput: initialFormData?.categoriesInput || '',
-      categories: initialFormData?.categories || [],
-      curriculoType: initialFormData?.curriculoType || 'curriculoNovo',
-      // NOVO CAMPO: Define o valor padrão para excludeCategoriesInput
-      excludeCategoriesInput: initialFormData?.excludeCategoriesInput || '',
-      excludeCategories: initialFormData?.excludeCategories || [],
+      searchTerm: '',
+      startDate: '',
+      endDate: '',
+      location: '',
+      minHours: '',
+      maxHours: '',
+      curriculoType: 'curriculoNovo',
     }
   });
+
+  // Usa useMemo para extrair e ordenar os nomes das categorias apenas uma vez
+  // ou quando categoriasData mudar (o que é improvável em um array estático).
+  const availableCategoryNames = useMemo(() => {
+    return categoriasData.map(cat => cat.nome).sort();
+  }, []);
 
   useEffect(() => {
     if (initialFormData) {
       reset(initialFormData);
+      // Garante que as categorias iniciais sejam convertidas para minúsculas para consistência
+      setSelectedIncludeCategories(initialFormData.categories?.map(c => c.toLowerCase()) || []);
+      setSelectedExcludeCategories(initialFormData.excludeCategories?.map(c => c.toLowerCase()) || []);
     } else {
       reset({
         searchTerm: '',
@@ -54,34 +87,50 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
         location: '',
         minHours: '',
         maxHours: '',
-        categoriesInput: '',
-        categories: [],
         curriculoType: 'curriculoNovo',
-        // NOVO CAMPO: Resetar excludeCategoriesInput
-        excludeCategoriesInput: '',
-        excludeCategories: [],
       });
+      setSelectedIncludeCategories([]);
+      setSelectedExcludeCategories([]);
     }
   }, [initialFormData, reset]);
 
   const hideCurriculoTypeSelect = initialFormData !== null && initialFormData.curriculoType !== undefined;
 
-  const onSubmit = (data: EventSearchForm) => {
-    // Processa categoriesInput
-    data.categories = data.categoriesInput
-      .split(',')
-      .map(category => category.trim())
-      .filter(category => category.length > 0)
-      .map(category => category.toLowerCase());
+  const handleAddIncludeCategory = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryName = event.target.value; // Já virá em minúsculas se a opção foi gerada com value={category.toLowerCase()}
+    if (categoryName && !selectedIncludeCategories.includes(categoryName)) {
+      setSelectedIncludeCategories((prev) => [...prev, categoryName]);
+      event.target.value = '';
+    }
+  }, [selectedIncludeCategories]);
 
-    // NOVO: Processa excludeCategoriesInput
-    data.excludeCategories = data.excludeCategoriesInput
-      .split(',')
-      .map(category => category.trim())
-      .filter(category => category.length > 0)
-      .map(category => category.toLowerCase());
+  const handleRemoveIncludeCategory = useCallback((categoryToRemove: string) => {
+    setSelectedIncludeCategories((prev) =>
+      prev.filter((category) => category !== categoryToRemove)
+    );
+  }, []);
 
-    onSearch(data);
+  const handleAddExcludeCategory = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryName = event.target.value; // Já virá em minúsculas
+    if (categoryName && !selectedExcludeCategories.includes(categoryName)) {
+      setSelectedExcludeCategories((prev) => [...prev, categoryName]);
+      event.target.value = '';
+    }
+  }, [selectedExcludeCategories]);
+
+  const handleRemoveExcludeCategory = useCallback((categoryToRemove: string) => {
+    setSelectedExcludeCategories((prev) =>
+      prev.filter((category) => category !== categoryToRemove)
+    );
+  }, []);
+
+  const onSubmit = (data: Omit<EventSearchForm, 'categories' | 'excludeCategories'>) => {
+    const fullData: EventSearchForm = {
+      ...data,
+      categories: selectedIncludeCategories,
+      excludeCategories: selectedExcludeCategories,
+    };
+    onSearch(fullData);
   };
 
   const handleClear = () => {
@@ -92,20 +141,24 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
       location: '',
       minHours: '',
       maxHours: '',
-      categoriesInput: '',
-      categories: [],
       curriculoType: 'curriculoNovo',
-      // NOVO CAMPO: Limpar excludeCategoriesInput
-      excludeCategoriesInput: '',
-      excludeCategories: [],
     });
+    setSelectedIncludeCategories([]);
+    setSelectedExcludeCategories([]);
     onClear();
   };
 
   return (
     <div className="p-4 rounded shadow-sm" style={{ backgroundColor: '#2c3e50' }}>
-      <h2 className="mb-4" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Buscar Eventos</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <h2 className="mb-4" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Filtro de Eventos</h2>
+      <form className='position-relative' onSubmit={handleSubmit(onSubmit)}>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm mt-2 position-absolute end-0 top-0"
+          onClick={handleClear}
+        >
+          Limpar Filtros
+        </button>
         {/* Seção de Informações do Evento */}
         <div className="mb-5">
           <h4 className="mb-3" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Informações do Evento</h4>
@@ -153,7 +206,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
 
         {/* Seção de Atividades Complementares */}
         <div className="mb-4">
-          <h4 className="mb-3" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Filtros de Atividades Complementares</h4>
+          <h4 className="mb-3" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Atividades Complementares do Evento</h4>
 
           {!hideCurriculoTypeSelect && (
             <div className="mb-3">
@@ -171,7 +224,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
 
           <div className="row mb-3">
             <div className="col-md-6">
-              <label htmlFor="minHours" className="form-label text-light">Horas Mínimas (AC Atividade):</label>
+              <label htmlFor="minHours" className="form-label text-light">Horas Mínimas:</label>
               <input
                 type="number"
                 className="form-control"
@@ -181,7 +234,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
               />
             </div>
             <div className="col-md-6">
-              <label htmlFor="maxHours" className="form-label text-light">Horas Máximas (AC Atividade):</label>
+              <label htmlFor="maxHours" className="form-label text-light">Horas Máximas:</label>
               <input
                 type="number"
                 className="form-control"
@@ -191,44 +244,84 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
               />
             </div>
           </div>
+
+          {/* Seleção de Categorias para INCLUSÃO */}
           <div className="mb-4">
-            <label htmlFor="categoriesInput" className="form-label text-light">Incluir Categorias de Atividade AC:</label>
-            <input
-              type="text"
-              className="form-control"
-              id="categoriesInput"
-              placeholder="Ex: Palestra, Workshop, Iniciação Científica"
-              {...register('categoriesInput')}
-            />
-            <small className="form-text text-light opacity-75">
-              Separe múltiplas categorias por vírgula. A busca não diferencia maiúsculas de minúsculas e é parcial.
-            </small>
+            <label htmlFor="selectIncludeCategories" className="form-label text-light">Mostrar eventos que tenham pelo menos uma atividade dos tipos:</label>
+            <select
+              className="form-select"
+              id="selectIncludeCategories"
+              onChange={handleAddIncludeCategory}
+              value="" // Garante que o select sempre mostre a opção padrão após a seleção
+            >
+              <option value="" disabled>Selecione uma categoria...</option>
+              {availableCategoryNames.map((category) => (
+                <option
+                  key={category}
+                  value={category.toLowerCase()} // Armazena em minúsculas
+                  disabled={selectedIncludeCategories.includes(category.toLowerCase())} // Desabilita opções já selecionadas
+                >
+                  {category}
+                </option>
+              ))}
+            </select>
+            <div className="mt-2 d-flex flex-wrap">
+              {selectedIncludeCategories.map((category) => (
+                <CategoryBadge
+                  
+                  key={`include-${category}`}
+                  text={category}
+                  onRemove={() => handleRemoveIncludeCategory(category)}
+                />
+              ))}
+            </div>
+            {selectedIncludeCategories.length === 0 && (
+              <small className="form-text text-light opacity-75">
+                Nenhuma categoria selecionada.
+              </small>
+            )}
           </div>
 
-          {/* NOVO CAMPO: Excluir Categorias */}
+          {/* Seleção de Categorias para EXCLUSÃO */}
           <div className="mb-4">
-            <label htmlFor="excludeCategoriesInput" className="form-label text-light">Excluir Categorias de Atividade AC:</label>
-            <input
-              type="text"
-              className="form-control"
-              id="excludeCategoriesInput"
-              placeholder="Ex: Esporte, Cultura, Voluntariado"
-              {...register('excludeCategoriesInput')}
-            />
-            <small className="form-text text-light opacity-75">
-              Separe múltiplas categorias por vírgula para excluí-las dos resultados.
-            </small>
+            <label htmlFor="selectExcludeCategories" className="form-label text-light">Não mostrar Eventos que <b>só</b> tenham atividades dos tipos:</label>
+            <select
+              className="form-select"
+              id="selectExcludeCategories"
+              onChange={handleAddExcludeCategory}
+              value="" // Garante que o select sempre mostre a opção padrão após a seleção
+            >
+              <option value="" disabled>Selecione uma categoria...</option>
+              {availableCategoryNames.map((category) => (
+                <option
+                  key={category}
+                  value={category.toLowerCase()} // Armazena em minúsculas
+                  disabled={selectedExcludeCategories.includes(category.toLowerCase())} // Desabilita opções já selecionadas
+                >
+                  {category}
+                </option>
+              ))}
+            </select>
+            <div className="mt-2 d-flex flex-wrap">
+              {selectedExcludeCategories.map((category) => (
+                <CategoryBadge
+                  key={`exclude-${category}`}
+                  text={category}
+                  onRemove={() => handleRemoveExcludeCategory(category)}
+                  red={true}
+                />
+              ))}
+            </div>
+            {selectedExcludeCategories.length === 0 && (
+              <small className="form-text text-light opacity-75">
+                Nenhuma categoria selecionada.
+              </small>
+            )}
           </div>
         </div>
 
         <button type="submit" className="btn btn-success w-100">Buscar</button>
-        <button
-          type="button"
-          className="btn btn-secondary w-100 mt-2"
-          onClick={handleClear}
-        >
-          Limpar Filtros
-        </button>
+        
       </form>
     </div>
   );

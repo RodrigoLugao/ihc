@@ -1,30 +1,47 @@
-import { Link, useLocation } from "react-router-dom"; // Import useLocation aqui
-import { useEffect } from "react"; // Import useEffect aqui
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useNavigate aqui
+import { useEffect } from "react";
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 dayjs.locale('pt-br');
 
 const AtividadesPage = () => {
-  const location = useLocation(); // Hook para acessar a localização atual
+  const location = useLocation();
+  const navigate = useNavigate(); // Hook para navegação programática
 
   // Efeito para rolar a página para a seção específica
   useEffect(() => {
-    if (location.hash) { // Verifica se há um hash na URL (ex: #tabela-atividades)
-      const element = document.getElementById(location.hash.substring(1)); // Pega o elemento pelo ID, removendo o '#'
+    if (location.hash) {
+      const element = document.getElementById(location.hash.substring(1));
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' }); // Rola suavemente para o elemento
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } else {
-      // Se não houver hash, rola para o topo da página ao carregar ou navegar sem hash
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [location]); // O efeito é executado sempre que a localização (URL) muda
+  }, [location]);
+
+  // Função para lidar com o clique do botão Voltar
+  const handleGoBack = () => {
+    navigate(-1); // Volta uma entrada no histórico do navegador
+  };
 
   return (
     <>
       <div className="background-div-no-image text-white">
         <div className="container py-5">
-          <h1 className="mb-4" style={{ fontWeight: "bold" }}>Atividades Complementares (AC)</h1>
+          {/* DIV para alinhar o título e o botão de voltar */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h1 className="mb-0" style={{ fontWeight: "bold" }}>Atividades Complementares (AC)</h1>
+            <button
+              onClick={handleGoBack}
+              className="btn btn-outline-light btn-sm" // Botão claro, pequeno e com outline
+            >
+              <span className="d-none d-md-block">Voltar</span>
+              <span className="d-block d-md-none"><FontAwesomeIcon icon={faArrowLeft} /></span>
+            </button>
+          </div>
 
           <section className="mb-5">
             <p className="text-light" style={{ fontSize: "1.1em" }}>

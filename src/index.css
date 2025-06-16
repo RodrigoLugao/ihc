@@ -421,3 +421,21 @@ body {
     align-items: stretch; /* Garante que as colunas tenham a mesma altura */
   }
 }
+
+/* Classe customizada para altura e z-index */
+.dashboard-bottom-nav-custom {
+  height: 65px; /* Altura fixa do menu */
+  z-index: 1020; /* Garante que fique acima de outros elementos, mas abaixo do navbar principal */
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Linha sutil no topo */
+}
+
+
+/* Overrides para as cores ativas/hover, se as classes text-info/text-light não forem ideais */
+.dashboard-nav-item-custom.text-light:hover {
+    color: var(--white) !important; /* Mais branco no hover */
+}
+
+.dashboard-nav-item-custom.text-info.active {
+    color: var(--uff-info) !important; /* Usa sua variável CSS para o ativo, garantindo prioridade */
+}
+

@@ -2,7 +2,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import type { Atividade } from '../interfaces/Atividade';
-import { calcularHorasAC } from '../utils/acutils';
 import { Link } from 'react-router-dom';
 
 // Renomeado de ListaAtividadesEventoProps para ListaAtividadesProps
@@ -39,19 +38,19 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({ activities }) => {
               <small><b>Descrição:</b> {activity.descricao || 'Sem descrição.'}</small>
             </p>
             <p className="mb-1 text-secondary">
-              <small><b>Categoria de Atividade:</b> {activity.categoria?.tipo || 'Não especificado'}</small>
+              <small><b>Categoria de Atividade:</b> {activity.categoria?.nome || 'Não especificado'}</small>
             </p>
             <p className="mb-1 text-secondary">
               <small><b>Responsável:</b> {activity.responsavel || 'Não especificado'}</small>
             </p>
             <p className="mb-1 text-secondary">
-              <small><b>Carga Horária Informada:</b> X horas</small>
+              <small><b>Duração da atividade:</b>{activity.duracao} {activity.categoria?.unidadeDeTempo}</small>
             </p>
             <p className="mb-1 text-secondary">
-              <small><b>Horas AC (Currículo Novo):</b> <span className="badge bg-success">{calcularHorasAC(activity, 'curriculoNovo').toFixed(1)}h</span></small>
+              <small><b>Horas AC (Currículo Novo):</b> <span className="badge bg-success">{(activity.duracao * (activity.categoria? activity.categoria.coeficienteNovo : 1)).toFixed(1)}h</span></small>
             </p>
             <p className="mb-3 text-secondary">
-              <small><b>Horas AC (Currículo Antigo):</b> <span className="badge bg-info">{calcularHorasAC(activity, 'curriculoAntigo').toFixed(1)}h</span></small>
+              <small><b>Horas AC (Currículo Antigo):</b> <span className="badge bg-info">{(activity.duracao * (activity.categoria? activity.categoria.coeficienteAntigo : 1)).toFixed(1)}h</span></small>
             </p>
             <p className="mt-2 d-flex align-items-center gap-3">
               <span className="text-dark">Participou dessa Atividade?</span>
