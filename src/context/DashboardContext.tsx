@@ -1,9 +1,11 @@
 // src/context/DashboardContext.tsx
-import React, { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react'; // Adicionado useState e useEffect
+import React, { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import { useUserStore } from '../store/userStore';
-import { calcularTotalHorasACByUsuario, getAtividadesConcluidasByUsuario } from '../utils/acutils';
-import { atividadesData } from '../data/atividadesData';
+import { useAtividadeStore } from '../store/atividadeStore'; // Importar o store de atividades
+import { useAtividadesConcluidasStore } from '../store/atividadesConcluidasStore'; // Importar o store de atividades concluídas
 import type { Usuario } from '../interfaces/Usuario';
+import type { Atividade } from '../interfaces/Atividade'; // Adicionado para tipagem
+import type { AtividadeConcluida } from '../interfaces/AtivdadeConcluida';
 
 // Tipos
 type CurriculoChave = "curriculoAntigo" | "curriculoNovo";
@@ -42,10 +44,13 @@ interface DashboardProviderProps {
 
 export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }) => {
   const usuario = useUserStore((state) => state.user);
-  const [loading, setLoading] = useState(true); // Começa como true
-  const [error, setError] = useState<string | null>(null); // Estado para erros
+  // Acessa as atividades e atividades concluídas do store
+  const getAtividades = useAtividadeStore((state) => state.getAtividades);
+  const getAtividadesConcluidasByUserId = useAtividadesConcluidasStore((state) => state.getAtividadesConcluidasByUsuario);
 
-  // Estados para armazenar os dados calculados após o atraso
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [horasACCalculadasState, setHorasACCalculadasState] = useState(0);
   const [totalHorasNecessariasState, setTotalHorasNecessariasState] = useState(0);
   const [horasFaltandoState, setHorasFaltandoState] = useState(0);
@@ -53,7 +58,10 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
   const [pieChartDataState, setPieChartDataState] = useState<any>({ labels: [], datasets: [] });
 
   useEffect(() => {
-    // Se não há usuário, não precisamos simular carregamento, ele simplesmente não está logado.
+    // Garante que os stores de atividades sejam inicializados
+    useAtividadeStore.getState().initializeStore();
+    useAtividadesConcluidasStore.getState().initializeStore();
+
     if (!usuario) {
       setLoading(false);
       // Limpa os estados de dados caso o usuário deslogue
@@ -65,13 +73,31 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
       return;
     }
 
-    setLoading(true); // Começa o loading se há usuário
-    setError(null); // Limpa qualquer erro anterior
+    setLoading(true);
+    setError(null);
 
     const timer = setTimeout(() => {
       try {
-        // Lógica de cálculo (a mesma que já estava)
-        const calculatedHorasAC = calcularTotalHorasACByUsuario(usuario.id, usuario.curriculoNovo);
+        const allAtividades: Atividade[] = getAtividades();
+        const atividadesConcluidasDoUsuario: AtividadeConcluida[] = getAtividadesConcluidasByUserId(usuario.id);
+
+        let calculatedHorasAC = 0;
+        const horasPorCategoria: { [key: string]: number } = {};
+        const uniqueCategories = new Set<string>();
+
+        atividadesConcluidasDoUsuario.forEach((acConcluida) => {
+          const atividade = allAtividades.find((atv) => atv.id === acConcluida.idAtividade);
+          if (atividade && atividade.categoria) {
+            const categoriaNome = atividade.categoria.nome;
+            const horas = atividade.duracao *
+              (usuario.curriculoNovo ? atividade.categoria.coeficienteNovo : atividade.categoria.coeficienteAntigo);
+
+            calculatedHorasAC += horas;
+            horasPorCategoria[categoriaNome] = (horasPorCategoria[categoriaNome] || 0) + horas;
+            uniqueCategories.add(categoriaNome);
+          }
+        });
+
         setHorasACCalculadasState(calculatedHorasAC);
 
         const tipoCurriculoParaCalculo: CurriculoChave = usuario.curriculoNovo ? "curriculoNovo" : "curriculoAntigo";
@@ -80,27 +106,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
 
         const calculatedHorasFaltando = Math.max(0, calculatedTotalHorasNecessarias - calculatedHorasAC);
         setHorasFaltandoState(calculatedHorasFaltando);
-
-        const atividadesConcluidasDoUsuario = getAtividadesConcluidasByUsuario(usuario.id);
-        const uniqueCategories = new Set<string>();
-        atividadesConcluidasDoUsuario.forEach((acConcluida) => {
-          const atividade = atividadesData.find((atv) => atv.id === acConcluida.idAtividade);
-          if (atividade && atividade.categoria) {
-            uniqueCategories.add(atividade.categoria.nome);
-          }
-        });
         setCategoriasDoUsuarioState(Array.from(uniqueCategories));
-
-        const horasPorCategoria: { [key: string]: number } = {};
-        atividadesConcluidasDoUsuario.forEach((acConcluida) => {
-          const atividade = atividadesData.find((atv) => atv.id === acConcluida.idAtividade);
-          if (atividade && atividade.categoria) {
-            const categoriaNome = atividade.categoria.nome;
-            const horas = atividade.duracao *
-              (usuario.curriculoNovo ? atividade.categoria.coeficienteNovo : atividade.categoria.coeficienteAntigo);
-            horasPorCategoria[categoriaNome] = (horasPorCategoria[categoriaNome] || 0) + horas;
-          }
-        });
 
         const finalLabels: string[] = [];
         const finalDataValues: number[] = [];
@@ -147,12 +153,12 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
         console.error("Erro ao carregar dados do dashboard:", err);
         setError("Não foi possível carregar os dados do dashboard.");
       } finally {
-        setLoading(false); // Termina o loading
+        setLoading(false);
       }
-    }, 500); // Simula 500ms de atraso
+    }, 500);
 
-    return () => clearTimeout(timer); // Limpa o timer se o componente for desmontado ou as dependências mudarem
-  }, [usuario]); // O efeito é executado apenas quando o `usuario` muda
+    return () => clearTimeout(timer);
+  }, [usuario, getAtividades, getAtividadesConcluidasByUserId]); // Adicionadas dependências do store
 
   const contextValue = useMemo(() => ({
     usuario,

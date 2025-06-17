@@ -16,14 +16,14 @@ const DashboardBottomNav: React.FC = () => {
   const navItems = [
     { path: "/dashboard", icon: faChartPie, label: "Visão Geral" },
     // Lista de ACs concluídas
-    { path: "/registrar-atividade", icon: faPlus, label: "Registrar Atividade Complementar" }, // Cadastrar nova AC
+    { path: "/dashboard/registrar", icon: faPlus, label: "Registrar Atividade" }, // Cadastrar nova AC
     {
-      path: "/atividades-concluidas",
+      path: "/dashboard/atividades",
       icon: faListCheck,
-      label: "Atividades Concluídas",
+      label: "Atividades Registradas",
     },
     {
-      path: "/formulario-solicitacao",
+      path: "/dashboard/pre-formulario",
       icon: faFileLines,
       label: "Preencher Formulário de Solicitação",
     }, // Link para o formulário oficial

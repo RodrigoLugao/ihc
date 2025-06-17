@@ -1,29 +1,38 @@
 // src/pages/EventosPage.tsx
 import { useState, useEffect, useCallback } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Removi 'replace' pois não é mais necessário chamá-lo explicitamente
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+// isSameOrBefore e isSameOrAfter agora são estendidos no eventStore.ts
+// dayjs.extend(isSameOrBefore);
+// dayjs.extend(isSameOrAfter);
 
-dayjs.extend(isSameOrBefore);
-dayjs.extend(isSameOrAfter);
-
-import { eventData, type Evento } from "../interfaces/Evento";
-import type { EventSearchForm } from "../components/FormBuscaEventos"; // A interface agora está limpa de campos de input de categorias
+// import { eventData, type Evento } from "../interfaces/Evento"; // REMOVIDO: Usaremos o store
+import type { Evento } from "../interfaces/Evento"; // Mantenha a importação da interface
+import type { EventSearchForm } from "../components/FormBuscaEventos";
 import FormBuscaEventos from "../components/FormBuscaEventos";
-import { type CurriculoTipo } from "../utils/acutils";
+import { type CurriculoTipo } from "../utils/acutils"; // Ainda necessário para a interface de filtro
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useEventStore } from "../store/eventoStore";
+
 
 dayjs.locale("pt-br");
 
 const EventosPage = () => {
-  const [allFilteredEvents, setAllFilteredEvents] = useState<Evento[]>([]);
+  // REMOVIDO: allFilteredEvents não é mais um estado local, é gerado pelo store
+  // const [allFilteredEvents, setAllFilteredEvents] = useState<Evento[]>([]);
   const [displayedEvents, setDisplayedEvents] = useState<Evento[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // initialFormValues agora corresponde à EventSearchForm sem campos de input de categorias
+  // Obtenha a função do store
+  const { initializeStore, getFilteredEvents } = useEventStore();
+  // Pega o estado `eventos` para re-renderizar quando o store muda (se necessário, embora getFilteredEvents já chame initializeStore)
+  const allEventsFromStore = useEventStore((state) => state.eventos);
+
+
   const [initialFormValues, setInitialFormValues] =
     useState<EventSearchForm | null>(null);
 
@@ -77,148 +86,20 @@ const EventosPage = () => {
   const applyFiltersAndPaginate = useCallback(
     (filters: EventSearchForm, page: number) => {
       setIsLoading(true);
-      let tempEvents = [...eventData];
-
-      const selectedCurriculoType: CurriculoTipo =
-        filters.curriculoType || "curriculoNovo";
-
-      // 1. Filtrar por termo de busca (nome ou descrição do evento)
-      if (filters.searchTerm) {
-        const lowerCaseSearchTerm = filters.searchTerm.toLowerCase();
-        tempEvents = tempEvents.filter(
-          (event) =>
-            event.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-            event.description.toLowerCase().includes(lowerCaseSearchTerm)
-        );
-      }
-
-      // 2. Filtrar por data de início do evento
-      if (filters.startDate) {
-        const searchStartDate = dayjs(filters.startDate);
-        if (searchStartDate.isValid()) {
-          tempEvents = tempEvents.filter((event) =>
-            dayjs(event.startDate).isSameOrAfter(searchStartDate, "day")
-          );
-        } else {
-          console.warn("Data de início inválida fornecida:", filters.startDate);
-        }
-      }
-
-      // 3. Filtrar por data de fim do evento
-      if (filters.endDate) {
-        const searchEndDate = dayjs(filters.endDate);
-        if (searchEndDate.isValid()) {
-          tempEvents = tempEvents.filter((event) =>
-            dayjs(event.endDate).isSameOrBefore(searchEndDate, "day")
-          );
-        } else {
-          console.warn("Data de fim inválida fornecida:", filters.endDate);
-        }
-      }
-
-      // 4. Filtrar por local do evento
-      if (filters.location) {
-        const lowerCaseLocation = filters.location.toLowerCase();
-        tempEvents = tempEvents.filter((event) =>
-          event.location.toLowerCase().includes(lowerCaseLocation)
-        );
-      }
-
-      const hasMinHours =
-        filters.minHours !== undefined &&
-        filters.minHours !== null &&
-        filters.minHours !== "";
-      const minHoursValue = hasMinHours ? Number(filters.minHours) : -Infinity;
-
-      const hasMaxHours =
-        filters.maxHours !== undefined &&
-        filters.maxHours !== null &&
-        filters.maxHours !== "";
-      const maxHoursValue = hasMaxHours ? Number(filters.maxHours) : Infinity;
-
-      // Categorias agora vêm diretamente como arrays
-      const hasCategoriesToInclude =
-        filters.categories && filters.categories.length > 0;
-      const selectedCategoriesToInclude = hasCategoriesToInclude
-        ? filters.categories
-        : [];
-
-      const hasCategoriesToExclude =
-        filters.excludeCategories && filters.excludeCategories.length > 0;
-      const selectedCategoriesToExclude = hasCategoriesToExclude
-        ? filters.excludeCategories
-        : [];
-
-      if (
-        hasMinHours ||
-        hasMaxHours ||
-        hasCategoriesToInclude ||
-        hasCategoriesToExclude
-      ) {
-        tempEvents = tempEvents.filter((event) => {
-          if (!event.activities || event.activities.length === 0) {
-            return false;
-          }
-
-          // Lógica de exclusão de atividades baseada em categorias
-          if (hasCategoriesToExclude) {
-            const anyActivityIsExcluded = event.activities.some((activity) => {
-              const activityCategoryType =
-                activity.categoria?.nome?.toLowerCase();
-              if (!activityCategoryType) return false;
-
-              return selectedCategoriesToExclude.some((excludedCat) =>
-                activityCategoryType.includes(excludedCat)
-              );
-            });
-            // Se alguma atividade do evento está em uma categoria excluída, o evento é excluído
-            if (anyActivityIsExcluded) {
-              return false;
-            }
-          }
-
-          // Lógica de inclusão e horas
-          return event.activities.some((activity) => {
-            const activityCategoryType =
-              activity.categoria?.nome?.toLowerCase();
-
-            if (!activityCategoryType) {
-              return false;
-            }
-
-            // A atividade é considerada se ela não foi excluída e atende aos critérios de horas e categoria de inclusão
-            const calculatedHoursAC =
-              activity.duracao *
-              (activity.categoria
-                ? selectedCurriculoType === "curriculoNovo"
-                  ? activity.categoria?.coeficienteNovo
-                  : activity.categoria?.coeficienteAntigo
-                : 1);
-            const meetsHoursCriteria =
-              calculatedHoursAC >= minHoursValue &&
-              calculatedHoursAC <= maxHoursValue;
-
-            const meetsCategoryCriteria =
-              !hasCategoriesToInclude || // Se não há categorias para incluir, este critério é sempre verdadeiro
-              selectedCategoriesToInclude.some((includedCat) =>
-                activityCategoryType.includes(includedCat)
-              );
-
-            return meetsHoursCriteria && meetsCategoryCriteria;
-          });
-        });
-      }
+      // Pega os eventos já filtrados diretamente do store
+      const filteredEvents = getFilteredEvents(filters);
 
       // --- Aplicar Paginação ---
-      const totalCount = tempEvents.length;
+      const totalCount = filteredEvents.length;
       const calculatedTotalPages = Math.ceil(totalCount / itemsPerPage);
       setTotalPages(calculatedTotalPages);
 
       const startIdx = (page - 1) * itemsPerPage;
       const endIdx = startIdx + itemsPerPage;
-      const paginatedEvents = tempEvents.slice(startIdx, endIdx);
+      const paginatedEvents = filteredEvents.slice(startIdx, endIdx);
 
-      setAllFilteredEvents(tempEvents);
+      // REMOVIDO: setAllFilteredEvents não é mais necessário aqui
+      // setAllFilteredEvents(filteredEvents);
       setDisplayedEvents(paginatedEvents);
       setCurrentPage(page);
 
@@ -226,11 +107,14 @@ const EventosPage = () => {
       console.log("Busca finalizada. Total de eventos filtrados:", totalCount);
       console.log("Eventos exibidos na página atual:", paginatedEvents.length);
     },
-    [itemsPerPage]
+    [getFilteredEvents, itemsPerPage] // Dependências: getFilteredEvents (do store) e itemsPerPage
   );
 
   // Efeito para carregar filtros da URL e aplicar a busca inicial
   useEffect(() => {
+    // Garante que o store está inicializado antes de tentar usar seus dados
+    initializeStore();
+
     const { filters, page } = parseQueryParams(); // Desestrutura os filtros e a página
 
     // Verifica se há algum parâmetro de filtro para inicializar o formulário
@@ -258,14 +142,14 @@ const EventosPage = () => {
           location: "",
           minHours: "",
           maxHours: "",
-          categories: [], // Alterado de categoriesInput
+          categories: [],
           curriculoType: "curriculoNovo",
-          excludeCategories: [], // Alterado de excludeCategoriesInput
+          excludeCategories: [],
         },
         1
       );
     }
-  }, [location.search, applyFiltersAndPaginate, parseQueryParams]);
+  }, [location.search, applyFiltersAndPaginate, parseQueryParams, initializeStore]); // Adicione initializeStore
 
   // Função que o FormBuscaEventos chamará ao submeter
   const handleSearchSubmit = (filters: EventSearchForm) => {
@@ -297,13 +181,37 @@ const EventosPage = () => {
     newQueryParams.set("page", "1"); // Sempre define a página para 1 em uma nova busca
     newQueryParams.set("limit", String(itemsPerPage));
 
-    navigate(`${location.pathname}?${newQueryParams.toString()}`);
+    navigate(`${location.pathname}?${newQueryParams.toString()}`, { replace: true });
   };
 
   const handleClearFilters = () => {
-    setIsLoading(true);
-    // Limpa todos os parâmetros da URL, o que disparará o useEffect para resetar a página
-    navigate(location.pathname, { replace: true });
+    setIsLoading(true); // Começa a carregar
+    const currentPath = location.pathname;
+    const currentSearch = location.search;
+    const newSearch = ""; // A URL limpa
+
+    // Verifica se a URL já está limpa para evitar navegação desnecessária
+    if (currentSearch === newSearch) {
+      setIsLoading(false);
+      applyFiltersAndPaginate( // Aplica a busca sem filtros para resetar a exibição
+        {
+          searchTerm: "",
+          startDate: "",
+          endDate: "",
+          location: "",
+          minHours: "",
+          maxHours: "",
+          categories: [],
+          curriculoType: "curriculoNovo",
+          excludeCategories: [],
+        },
+        1
+      );
+    } else {
+      // Se a URL não está limpa, navega para limpar, o useEffect cuidará do resto
+      navigate(currentPath, { replace: true });
+      // O setIsLoading(false) será chamado pelo useEffect após applyFiltersAndPaginate
+    }
   };
 
   // Lógica de Paginação para botões na EventosPage
@@ -344,12 +252,52 @@ const EventosPage = () => {
     navigate(`${location.pathname}?${newQueryParams.toString()}`);
   };
 
+  // Função para lidar com o clique do botão Voltar
+  const handleGoBack = () => {
+    navigate(-1); // Volta uma entrada no histórico do navegador
+  };
+
+  // O estado 'allFilteredEvents' não é mais necessário localmente.
+  // Você pode obter a contagem total de eventos filtrados a partir de `getFilteredEvents`
+  // antes de aplicar a paginação no `applyFiltersAndPaginate`.
+  // Para exibir a contagem total, precisaremos recalcular isso no `useEffect` ou `useCallback`.
+  const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0);
+
+  useEffect(() => {
+    initializeStore(); // Garante que o store está inicializado
+    const { filters, page } = parseQueryParams();
+    const filteredResults = getFilteredEvents(filters); // Obtém todos os eventos filtrados
+    setTotalFilteredCount(filteredResults.length); // Define a contagem total
+
+    // Aplica a paginação sobre os eventos filtrados
+    const startIdx = (page - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const paginated = filteredResults.slice(startIdx, endIdx);
+
+    setDisplayedEvents(paginated);
+    setCurrentPage(page);
+    setTotalPages(Math.ceil(filteredResults.length / itemsPerPage));
+    setIsLoading(false);
+  }, [location.search, itemsPerPage, initializeStore, parseQueryParams, getFilteredEvents, allEventsFromStore]); // Adicione allEventsFromStore para re-executar quando o estado do store mudar
+
+
   return (
     <div className="background-div-2 text-white py-5">
       <div className="container">
-        <h1 className="mb-4" style={{ fontWeight: "bold" }}>
-          Próximos Eventos
-        </h1>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="mb-0" style={{ fontWeight: "bold" }}>
+            Todos os Eventos
+          </h1>
+          <button
+            onClick={handleGoBack}
+            className="btn btn-outline-light btn-sm"
+          >
+            <span className="d-none d-md-block">Voltar</span>
+            <span className="d-block d-md-none">
+              <FontAwesomeIcon icon={faArrowLeft} />
+            </span>
+          </button>
+        </div>
 
         <div className="row">
           <div className="col-12 col-md-5 mb-4 mb-md-0">
@@ -366,7 +314,7 @@ const EventosPage = () => {
                 Lista de Eventos
               </h2>
               <h3 className="mb-4 text-dark">
-                {allFilteredEvents.length} eventos encontrados
+                {totalFilteredCount} eventos encontrados
               </h3>
               {isLoading ? (
                 <div

@@ -1,52 +1,64 @@
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { useState, useEffect } from "react"; // Importar useState e useEffect
-import { categoriasData, type CategoriaAtividade } from "../interfaces/Categoria";
+// src/pages/RegistrarAtividadePage.tsx
+import React, { useEffect } from "react"; // Adicionei useEffect
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ActivityForm, {
+  type ActivityFormInputs,
+} from "../components/ActivityForm"; // Importar o novo componente e a interface
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate, useLocation } from "react-router-dom"; // Adicionei useLocation
+import { useForm, type SubmitHandler } from "react-hook-form"; // Adicionei useForm e SubmitHandler
+import { useCategoriaStore } from "../store/categoriaStore"; // Importe o hook do seu store
 
-interface ActivityFormInputs {
-  nome: string;
-  descricao: string;
-  inicio: string;
-  fim: string;
-  responsavel: string;
-  duracao: number;
-  categoriaNome: string;
-  certificado?: FileList;
-}
+const RegistrarAtividadePage: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation(); // Hook para acessar o objeto location
+  // Pega os dados do estado de navegação, tipando-os como ActivityFormInputs ou undefined
+  const prefilledData = location.state?.prefilledData as
+    | ActivityFormInputs
+    | undefined;
 
-const RegistrarAtividadePage = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    watch, // Importar a função watch
-  } = useForm<ActivityFormInputs>();
+  // Utilize useForm para ter acesso ao método reset, que será passado ao ActivityForm
+  // O ActivityForm já gerencia o register e handleSubmit internamente.
+  // Aqui, configuramos os valores default com os dados pré-preenchidos, se existirem.
+  const { reset } = useForm<ActivityFormInputs>({
+    defaultValues: prefilledData, // Define os valores iniciais do formulário
+  });
 
-  // >>> Monitorar a seleção da categoria em tempo real
-  const selectedCategoryName = watch("categoriaNome");
-  // >>> Estado para armazenar o objeto CategoriaAtividade completo
-  const [selectedCategory, setSelectedCategory] = useState<CategoriaAtividade | undefined>(undefined);
+  // Acessar o store de categorias para garantir que as categorias estejam carregadas e para buscar pelo nome
+  const { getCategoriaByName } = useCategoriaStore();
 
-  // >>> useEffect para atualizar a categoria selecionada quando selectedCategoryName mudar
+  // useEffect para garantir que o formulário seja resetado se os dados pré-preenchidos mudarem
+  // ou se o componente for montado com novos dados de navegação.
   useEffect(() => {
-    if (selectedCategoryName) {
-      const foundCategory = categoriasData.find(
-        (cat) => cat.nome === selectedCategoryName
-      );
-      setSelectedCategory(foundCategory);
+    if (prefilledData) {
+      reset(prefilledData);
     } else {
-      setSelectedCategory(undefined); // Limpar se nenhuma categoria for selecionada
+      // Se não há dados pré-preenchidos (ex: acesso direto à página), reseta para valores vazios
+      reset({
+        nome: "",
+        descricao: "",
+        inicio: "",
+        fim: "",
+        responsavel: "",
+        duracao: 0,
+        categoriaNome: "",
+        certificado: undefined,
+      });
     }
-  }, [selectedCategoryName]);
+  }, [prefilledData, reset]); // 'reset' é uma função estável do react-hook-form, mas adicioná-la é boa prática.
 
   const onSubmit: SubmitHandler<ActivityFormInputs> = (data) => {
-    // A validação se selectedCategory existe já é feita pelo useEffect/estado
+    // Buscar a categoria pelo nome usando o store
+    const selectedCategory = getCategoriaByName(data.categoriaNome);
+
     if (!selectedCategory) {
-      alert("Por favor, selecione uma categoria válida.");
+      alert(
+        "Erro interno: Categoria não encontrada no store. Por favor, selecione uma categoria válida."
+      );
       return;
     }
 
-    const newId = Date.now();
+    const newId = Date.now(); // ID temporário, idealmente viria de um backend
 
     const novaAtividade = {
       id: newId,
@@ -62,220 +74,61 @@ const RegistrarAtividadePage = () => {
     console.log("Dados da Nova Atividade (pronto para enviar):", novaAtividade);
     console.log(
       "Certificado (se selecionado):",
-      data.certificado && data.certificado.length > 0 ? data.certificado[0] : "Nenhum"
+      data.certificado && data.certificado.length > 0
+        ? data.certificado[0]
+        : "Nenhum"
     );
 
     alert("Formulário preenchido e dados logados no console!");
-    reset(); // Resetar o formulário
-    setSelectedCategory(undefined); // Resetar a categoria selecionada também
+    // Aqui você faria a chamada para a API para registrar a atividade
+    // Por exemplo: useAtividadeStore().addAtividade(novaAtividade);
   };
 
   const handleClear = () => {
+    console.log("Formulário limpo pela página pai (RegistrarAtividadePage)");
+    // Ao chamar o reset do formulário interno, ele será re-renderizado com os valores padrão.
+    // Se prefilledData existir, ele voltará aos preenchidos. Se não, ficará vazio.
     reset({
-      nome: '',
-      descricao: '',
-      inicio: '',
-      fim: '',
-      responsavel: '',
+      nome: "",
+      descricao: "",
+      inicio: "",
+      fim: "",
+      responsavel: "",
       duracao: 0,
-      categoriaNome: '',
+      categoriaNome: "",
       certificado: undefined,
     });
-    setSelectedCategory(undefined); // Limpar a categoria selecionada ao limpar o formulário
+  };
+
+  // Função para lidar com o clique do botão Voltar
+  const handleGoBack = () => {
+    navigate(-1); // Volta uma entrada no histórico do navegador
   };
 
   return (
     <div className="background-div">
       <div className="container pt-5 pb-5">
-        <h1>Registrar Nova Atividade Complementar</h1>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="mb-0" style={{ fontWeight: "bold" }}>
+            Registrar Atividade Complementar
+          </h1>
+          <button
+            onClick={handleGoBack}
+            className="btn btn-outline-light btn-sm" // Botão claro, pequeno e com outline
+          >
+            <span className="d-none d-md-block">Voltar</span>
+            <span className="d-block d-md-none">
+              <FontAwesomeIcon icon={faArrowLeft} />
+            </span>
+          </button>
+        </div>
         <hr className="my-4" />
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="p-4 border rounded shadow-sm text-dark bg-light"
-        >
-          <div className="mb-3">
-            <label htmlFor="nome" className="form-label">
-              Nome da Atividade
-            </label>
-            <input
-              type="text"
-              className={`form-control ${errors.nome ? "is-invalid" : ""}`}
-              id="nome"
-              placeholder="Nome da Atividade realizada. Ex.: Workshop: Redação de Artigos Científicos"
-              {...register("nome", { required: "Nome é obrigatório." })}
-            />
-            {errors.nome && (
-              <div className="invalid-feedback">{errors.nome.message}</div>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="descricao" className="form-label">
-              Descrição
-            </label>
-            <textarea
-              className={`form-control ${errors.descricao ? "is-invalid" : ""}`}
-              id="descricao"
-              placeholder="Descrição das atividades realizadas. Ex: Orientações práticas para a escrita e formatação de artigos científicos. "
-              rows={3}
-              {...register("descricao")}
-            ></textarea>
-            {errors.descricao && (
-              <div className="invalid-feedback">{errors.descricao.message}</div>
-            )}
-          </div>
-
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="inicio" className="form-label">
-                Data de Início
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.inicio ? "is-invalid" : ""}`}
-                id="inicio"
-                {...register("inicio", {
-                  required: "Data de início é obrigatória.",
-                })}
-              />
-              {errors.inicio && (
-                <div className="invalid-feedback">{errors.inicio.message}</div>
-              )}
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="fim" className="form-label">
-                Data de Fim
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.fim ? "is-invalid" : ""}`}
-                id="fim"
-                {...register("fim", {
-                  validate: (value, formValues) =>
-                    !value || value >= formValues.inicio ||
-                    "Data de fim deve ser igual ou posterior à data de início.",
-                })}
-              />
-              {errors.fim && (
-                <div className="invalid-feedback">{errors.fim.message}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="responsavel" className="form-label">
-              Responsável/Instituição
-            </label>
-            <input
-              type="text"
-              className={`form-control ${
-                errors.responsavel ? "is-invalid" : ""
-              }`}
-              placeholder="Indivíduo ou instituição responsável pela atividade."
-              id="responsavel"
-              {...register("responsavel", {
-                required: "Responsável é obrigatório.",
-              })}
-            />
-            {errors.responsavel && (
-              <div className="invalid-feedback">
-                {errors.responsavel.message}
-              </div>
-            )}
-          </div>
-
-          {/* >>> Categoria antes da Duração */}
-          <div className="mb-3">
-            <label htmlFor="categoriaNome" className="form-label">
-              Categoria da Atividade
-            </label>
-            <select
-              className={`form-select ${
-                errors.categoriaNome ? "is-invalid" : ""
-              }`}
-              id="categoriaNome"
-              {...register("categoriaNome", {
-                required: "Categoria é obrigatória.",
-              })}
-            >
-              <option value="">Selecione uma categoria...</option>
-              {categoriasData.map((cat: CategoriaAtividade, index: number) => (
-                <option key={index} value={cat.nome}>
-                  {cat.nome}
-                </option>
-              ))}
-            </select>
-            {errors.categoriaNome && (
-              <div className="invalid-feedback">
-                {errors.categoriaNome.message}
-              </div>
-            )}
-          </div>
-
-          {/* >>> Campo de duração condicional e dinâmico */}
-          <div className="mb-3">
-            <label htmlFor="duracao" className="form-label">
-              {selectedCategory
-                ? `Duração da Atividade (em ${selectedCategory.unidadeDeTempo})`
-                : "Duração da Atividade"}
-            </label>
-            <input
-              type="number"
-              className={`form-control ${
-                errors.duracao ? "is-invalid" : ""
-              }`}
-              id="duracao"
-              {...register("duracao", {
-                required: selectedCategory ? "Duração é obrigatória." : false, // Torna obrigatório apenas se a categoria for selecionada
-                min: { value: 1, message: "Duração deve ser positiva." },
-                valueAsNumber: true,
-              })}
-              min="1"
-              disabled={!selectedCategory} // Desabilita se nenhuma categoria for selecionada
-              placeholder={
-                !selectedCategory ? "Escolha a categoria primeiro" : ""
-              }
-            />
-            {errors.duracao && (
-              <div className="invalid-feedback">
-                {errors.duracao.message}
-              </div>
-            )}
-            {!selectedCategory && (
-              <small className="form-text text-muted">
-                Por favor, selecione uma categoria para habilitar este campo.
-              </small>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="certificado" className="form-label">
-              Upload do Certificado (Opcional)
-            </label>
-            <input
-              type="file"
-              className={`form-control ${
-                errors.certificado ? "is-invalid" : ""
-              }`}
-              id="certificado"
-              {...register("certificado")}
-            />
-            {errors.certificado && (
-              <div className="invalid-feedback">
-                {errors.certificado.message}
-              </div>
-            )}
-          </div>
-          <div className="d-flex justify-content-between mt-4">
-            <button type="button" onClick={handleClear} className="btn btn-danger">
-              Limpar Formulário
-            </button>
-            <button type="submit" className="btn btn-success">
-              Registrar Atividade
-            </button>
-          </div>
-        </form>
+        {/* Renderiza o componente ActivityForm, passando as funções de callback
+            E, mais importante, passando a função reset do useForm para o ActivityForm
+            para que ele possa ser controlado externamente.
+        */}
+        <ActivityForm onSubmit={onSubmit} onClear={handleClear} prefilledData={prefilledData} />
       </div>
     </div>
   );

@@ -12,6 +12,9 @@ import SecretPage from "../pages/SecretPage";
 import EsqueciSenhaPage from "../pages/EsqueciSenhaPage";
 import RegistrarAtividadePage from "../pages/RegistrarAtividadePage";
 import VisaoGeralPage from "../pages/VisaoGeralPage";
+import PreRegistrarPage from "../pages/PreRegistrarPage";
+import ListaAtividadesPessoalPage from "../pages/ListaAtividadesPessoalPage";
+import PreFormularioPage from "../pages/PreFormularioPage";
 
 const router = createBrowserRouter(
   [
@@ -45,6 +48,9 @@ const router = createBrowserRouter(
           element: <DashboardPage />,
           children: [
             { index: true, element: <VisaoGeralPage /> },
+            { path: "registrar", element: <PreRegistrarPage /> },
+            { path: "atividades", element: <ListaAtividadesPessoalPage /> },
+            { path: "pre-formulario", element: <PreFormularioPage /> },
           ],
         },
         {

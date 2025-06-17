@@ -1,35 +1,39 @@
-import { Link, NavLink, useNavigate } from "react-router-dom"; // Importe useNavigate
-import logo from "../../public/atividades complementares logo.jpg";
-import { useState, useRef } from "react"; // Importe useState e useRef
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom"; // Importe useLocation
+import logo from "/atividades complementares logo.jpg";
+import { useState, useRef } from "react";
 import { useUserStore } from "../store/userStore";
 
 const NavBar = () => {
   const isAuthenticated = useUserStore((state) => state.isAuthenticated);
   const usuario = useUserStore((state) => state.user);
-  const logout = useUserStore((state) => state.logout); // Pegue a função de logout do store
-  const navigate = useNavigate(); // Hook para navegação
+  const logout = useUserStore((state) => state.logout);
+  const navigate = useNavigate();
+  const location = useLocation(); // Use o hook useLocation aqui
 
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // Estado para o spinner de logout
-  const navbarTogglerRef = useRef<HTMLButtonElement>(null); // Ref para o botão do toggler
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const navbarTogglerRef = useRef<HTMLButtonElement>(null);
 
   const handleLogout = async () => {
-    setIsLoggingOut(true); // Ativa o spinner
+    setIsLoggingOut(true);
 
-    // Simula um atraso de 1 segundo
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    logout(); // Realiza o logout via store
-    setIsLoggingOut(false); // Desativa o spinner
-    navigate("/login"); // Redireciona para a página de login
+    logout();
+    setIsLoggingOut(false);
+    navigate("/login");
   };
 
-  // Função para fechar o menu mobile ao clicar em um link
   const closeMobileMenu = () => {
-    if (navbarTogglerRef.current && 
-        navbarTogglerRef.current.getAttribute('aria-expanded') === 'true') {
-      navbarTogglerRef.current.click(); // Simula um clique no botão para fechar
+    if (
+      navbarTogglerRef.current &&
+      navbarTogglerRef.current.getAttribute("aria-expanded") === "true"
+    ) {
+      navbarTogglerRef.current.click();
     }
   };
+
+  // Determina o texto a ser exibido ao lado do logo
+  const brandText = location.pathname === "/" ? "SOAC" : "Início";
 
   return (
     <nav
@@ -37,13 +41,18 @@ const NavBar = () => {
       style={{ minHeight: "90px" }}
     >
       <div className="container">
-        <NavLink className="navbar-brand d-flex align-items-center" to="/" onClick={closeMobileMenu}>
+        <NavLink
+          className="navbar-brand d-flex align-items-center"
+          to="/"
+          onClick={closeMobileMenu}
+        >
           <img
             src={logo}
             width="50px"
             alt="Logo da Ferramenta de Organização"
           />
-          <p className="h5 texto-azul-escuro mb-0 ms-2">SOAC</p>
+          {/* Renderiza o texto condicionalmente */}
+          <p className="h5 texto-azul-escuro mb-0 ms-2">{brandText}</p>
         </NavLink>
 
         <button
@@ -54,7 +63,7 @@ const NavBar = () => {
           aria-controls="navbarSupportedContent"
           aria-expanded="false"
           aria-label="Toggle navigation"
-          ref={navbarTogglerRef} // Atribui a ref ao botão toggler
+          ref={navbarTogglerRef}
         >
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -64,8 +73,8 @@ const NavBar = () => {
             <li className="nav-item">
               <NavLink
                 className="nav-link texto-azul-escuro nav-custom-link"
-                to="/atividades"
-                onClick={closeMobileMenu} // Adiciona o onClick
+                to="/atividades" // Corrigido para a rota correta da página de regras
+                onClick={closeMobileMenu}
               >
                 Sobre Atividades Complementares
               </NavLink>
@@ -74,7 +83,7 @@ const NavBar = () => {
               <NavLink
                 className="nav-link texto-azul-escuro nav-custom-link"
                 to="/dashboard"
-                onClick={closeMobileMenu} // Adiciona o onClick
+                onClick={closeMobileMenu}
               >
                 Organizador
               </NavLink>
@@ -83,7 +92,7 @@ const NavBar = () => {
               <NavLink
                 className="nav-link texto-azul-escuro nav-custom-link"
                 to="/eventos"
-                onClick={closeMobileMenu} // Adiciona o onClick
+                onClick={closeMobileMenu}
               >
                 Eventos
               </NavLink>
@@ -92,7 +101,7 @@ const NavBar = () => {
               <NavLink
                 className="nav-link texto-azul-escuro nav-custom-link"
                 to="/perguntas"
-                onClick={closeMobileMenu} // Adiciona o onClick
+                onClick={closeMobileMenu}
               >
                 Perguntas Frequentes
               </NavLink>
@@ -105,7 +114,7 @@ const NavBar = () => {
                   className="btn btn-outline-success"
                   to="/login"
                   style={{ minWidth: "100px" }}
-                  onClick={closeMobileMenu} // Adiciona o onClick
+                  onClick={closeMobileMenu}
                 >
                   Entrar
                 </Link>
@@ -115,16 +124,20 @@ const NavBar = () => {
                   className="btn btn-outline-danger"
                   type="button"
                   style={{ minWidth: "100px" }}
-                  onClick={handleLogout} // Chama a função de logout
-                  disabled={isLoggingOut} // Desabilita o botão durante o logout
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
                 >
                   {isLoggingOut ? (
                     <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
                       <span className="ms-2">Saindo...</span>
                     </>
                   ) : (
-                    'Sair'
+                    "Sair"
                   )}
                 </button>
               )}
@@ -141,21 +154,25 @@ const NavBar = () => {
             )}
             {isAuthenticated && (
               <>
-                <span className="me-3 text-dark">Olá, {usuario?.nome}</span> {/* Corrigido para text-dark */}
+                <span className="me-3 text-dark">Olá, {usuario?.nome}</span>
                 <button
                   className="btn btn-outline-danger"
                   type="button"
                   style={{ minWidth: "100px" }}
-                  onClick={handleLogout} // Chama a função de logout
-                  disabled={isLoggingOut} // Desabilita o botão durante o logout
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
                 >
                   {isLoggingOut ? (
                     <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
                       <span className="ms-2">Saindo...</span>
                     </>
                   ) : (
-                    'Sair'
+                    "Sair"
                   )}
                 </button>
               </>
