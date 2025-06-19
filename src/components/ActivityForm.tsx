@@ -13,15 +13,16 @@ export interface ActivityFormInputs {
   responsavel: string;
   duracao: number;
   categoriaNome: string;
-  certificado?: FileList; // Alterado para FileList para corresponder ao input type="file"
+  certificado?: FileList | null; // Alterado para FileList | null
 }
 
 // Props que o componente ActivityForm vai receber
 interface ActivityFormProps {
   onSubmit: SubmitHandler<ActivityFormInputs>; // Função de submissão do formulário
   onClear: () => void; // Função para limpar o formulário
-  precisaCertificado?: boolean; // Corrigido o erro de digitação para 'precisaCertificado'
+  precisaCertificado?: boolean;
   prefilledData?: ActivityFormInputs; // NOVA PROP: dados para pré-preencher
+  isEditing?: boolean; // NOVO: Flag para indicar modo de edição
 }
 
 const ActivityForm: React.FC<ActivityFormProps> = ({
@@ -29,6 +30,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   onClear,
   precisaCertificado = true,
   prefilledData, // Recebendo a nova prop
+  isEditing = false, // Default false
 }) => {
   const {
     register,
@@ -46,7 +48,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
 
   // Monitorar a seleção da categoria em tempo real
   const selectedCategoryName = watch("categoriaNome");
-  const currentCertificado = watch("certificado"); // Observar o campo de certificado
+  const currentCertificadoWatch = watch("certificado"); // Observar o campo de certificado
 
   // Estado para armazenar o objeto CategoriaAtividade completo
   const [selectedCategory, setSelectedCategory] = useState<
@@ -64,13 +66,11 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   }, [selectedCategoryName, getCategoriaByName]);
 
   // useEffect para lidar com a prop prefilledData e resetar o formulário.
-  // IMPORTANTE: O reset não vai "preencher" o input type="file" visualmente
-  // mas garantirá que os outros campos e os dados do certificado no estado do hook-form estejam corretos.
+  // IMPORTANTE: Adicionei a verificação de `isEditing` para garantir que o reset não zere acidentalmente ao mudar de rota sem `prefilledData` no modo de edição.
   useEffect(() => {
     if (prefilledData) {
       reset(prefilledData);
-    } else {
-      // Se não há dados pré-preenchidos, zera o formulário
+    } else if (!isEditing) { // Só reseta para vazio se não for edição e não houver prefilledData
       reset({
         nome: "",
         descricao: "",
@@ -79,12 +79,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         responsavel: "",
         duracao: 0,
         categoriaNome: "",
-        // Não resetar certificado para undefined aqui se já tiver um selecionado manualmente
-        // ou se for um reset de "limpar formulário". O handleInternalClear já faz isso.
+        certificado: null, // Limpa o certificado explicitamente para null
       });
     }
-  }, [prefilledData, reset]);
-
+  }, [prefilledData, reset, isEditing]); // Adicionado isEditing como dependência
 
   // Função interna para lidar com o reset do formulário e da categoria selecionada
   const handleInternalClear = () => {
@@ -96,16 +94,39 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       responsavel: "",
       duracao: 0,
       categoriaNome: "",
-      certificado: undefined, // Limpa o certificado explicitamente
+      certificado: null, // Limpa o certificado explicitamente para null
     });
     setSelectedCategory(undefined);
     onClear(); // Chamar a função onClear passada via props (se houver lógica adicional na página pai)
   };
 
-  // Determinar se há um certificado pré-preenchido ou selecionado
-  const hasCertificado = (prefilledData?.certificado && prefilledData.certificado.length > 0) ||
-                         (currentCertificado && currentCertificado.length > 0);
-  const certificadoFileName = prefilledData?.certificado?.[0]?.name || currentCertificado?.[0]?.name;
+  // Lógica para determinar se há um certificado e qual o seu nome
+  // Se estiver no modo de edição, `prefilledData.certificado` pode ser uma string ou FileList.
+  // Precisamos verificar o tipo ou como ele é passado.
+  // Assumindo que `prefilledData.certificado` é uma FileList se for pré-preenchido do store (já que `ActivityFormInputs` espera FileList)
+  // Ou que `prefilledData` pode vir com o `comprovante` como string na `EditarAtividadePage`.
+  // Para simplificar, vamos considerar que `prefilledData.certificado` é FileList ou null/undefined.
+  // Se você for passar o nome do comprovante como uma string de `/uploads/nome.pdf`, precisaremos adaptar essa lógica.
+  // Por enquanto, vou manter a lógica que espera `FileList`. Se vier uma string, precisaremos criar um `FileList` mock ou ajustar a prop.
+
+  // Reavaliando a lógica do certificado:
+  // Se prefilledData existe e tem certificado (FileList):
+  const prefilledCertificado = prefilledData?.certificado instanceof FileList && prefilledData.certificado.length > 0
+    ? prefilledData.certificado
+    : null;
+
+  // Se o usuário selecionou um NOVO certificado no formulário:
+  const newCertificadoSelected = currentCertificadoWatch && currentCertificadoWatch.length > 0;
+
+  // Determina se há um certificado atual (pré-preenchido ou recém-selecionado)
+  const hasCertificado = !!prefilledCertificado || newCertificadoSelected;
+
+  // Determina o nome do arquivo do certificado para exibição
+  const certificadoFileName = newCertificadoSelected
+    ? currentCertificadoWatch![0].name
+    : prefilledCertificado
+    ? prefilledCertificado[0].name
+    : "";
 
 
   return (
@@ -131,7 +152,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
 
       <div className="mb-3">
         <label htmlFor="descricao" className="form-label">
-          Descrição
+          Descrição (Opcional)
         </label>
         <textarea
           className={`form-control ${errors.descricao ? "is-invalid" : ""}`}
@@ -164,7 +185,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         </div>
         <div className="col-md-6">
           <label htmlFor="fim" className="form-label">
-            Data de Fim
+            Data de Fim (Opcional)
           </label>
           <input
             type="date"
@@ -287,13 +308,13 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           )}
           {hasCertificado && (
             <div className="form-text text-success mt-2">
-              Certificado anexado: **{certificadoFileName}** (Você pode enviar um novo para substituir)
+              Certificado anexado: <strong>{certificadoFileName}</strong> (Você pode enviar um novo para substituir)
             </div>
           )}
-          {!hasCertificado && prefilledData?.certificado && ( // Se houver dados pré-preenchidos mas não visualmente no campo
-             <div className="form-text text-info mt-2">
-               Certificado pronto para ser anexado após a submissão (detectado via IA).
-             </div>
+          {!hasCertificado && ( // Simplificado: se não tem certificado (nem pre-existente, nem novo selecionado)
+            <div className="form-text text-muted mt-2">
+              Nenhum arquivo selecionado.
+            </div>
           )}
         </div>
       )}
@@ -307,7 +328,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           Limpar Formulário
         </button>
         <button type="submit" className="btn btn-success">
-          Registrar Atividade
+          {isEditing ? "Salvar Alterações" : "Registrar Atividade"}
         </button>
       </div>
     </form>

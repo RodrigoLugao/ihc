@@ -1,10 +1,9 @@
 // src/context/DashboardContext.tsx
 import React, { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import { useUserStore } from '../store/userStore';
-import { useAtividadeStore } from '../store/atividadeStore'; // Importar o store de atividades
-import { useAtividadesConcluidasStore } from '../store/atividadesConcluidasStore'; // Importar o store de atividades concluídas
+import { useAtividadeStore } from '../store/atividadeStore';
+import { useAtividadesConcluidasStore } from '../store/atividadesConcluidasStore';
 import type { Usuario } from '../interfaces/Usuario';
-import type { Atividade } from '../interfaces/Atividade'; // Adicionado para tipagem
 import type { AtividadeConcluida } from '../interfaces/AtivdadeConcluida';
 
 // Tipos
@@ -44,9 +43,10 @@ interface DashboardProviderProps {
 
 export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }) => {
   const usuario = useUserStore((state) => state.user);
-  // Acessa as atividades e atividades concluídas do store
-  const getAtividades = useAtividadeStore((state) => state.getAtividades);
-  const getAtividadesConcluidasByUserId = useAtividadesConcluidasStore((state) => state.getAtividadesConcluidasByUsuario);
+  
+  // Obtenha as listas de dados diretamente como dependências reativas do Zustand
+  const allAtividades = useAtividadeStore((state) => state.atividades); 
+  const allAtividadesConcluidas = useAtividadesConcluidasStore((state) => state.atividadesConcluidas);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,9 +58,9 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
   const [pieChartDataState, setPieChartDataState] = useState<any>({ labels: [], datasets: [] });
 
   useEffect(() => {
-    // Garante que os stores de atividades sejam inicializados
-    useAtividadeStore.getState().initializeStore();
-    useAtividadesConcluidasStore.getState().initializeStore();
+    // REMOVA ESTAS DUAS LINHAS:
+    // useAtividadeStore.getState().initializeStore();
+    // useAtividadesConcluidasStore.getState().initializeStore();
 
     if (!usuario) {
       setLoading(false);
@@ -78,8 +78,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
 
     const timer = setTimeout(() => {
       try {
-        const allAtividades: Atividade[] = getAtividades();
-        const atividadesConcluidasDoUsuario: AtividadeConcluida[] = getAtividadesConcluidasByUserId(usuario.id);
+        // Filtra as atividades concluídas SOMENTE para o usuário atual
+        const atividadesConcluidasDoUsuario: AtividadeConcluida[] = allAtividadesConcluidas.filter(ac => ac.idUsuario === usuario.id);
 
         let calculatedHorasAC = 0;
         const horasPorCategoria: { [key: string]: number } = {};
@@ -155,10 +155,10 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
       } finally {
         setLoading(false);
       }
-    }, 500);
+    }, 500); // Pequeno atraso para visualização de loading, ajuste se necessário.
 
     return () => clearTimeout(timer);
-  }, [usuario, getAtividades, getAtividadesConcluidasByUserId]); // Adicionadas dependências do store
+  }, [usuario, allAtividades, allAtividadesConcluidas]); // Dependências do useEffect
 
   const contextValue = useMemo(() => ({
     usuario,

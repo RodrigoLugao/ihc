@@ -1,45 +1,51 @@
-import React, { useEffect, useState } from "react";
+// src/pages/EditarAtividadePage.tsx
+import React, { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ActivityForm, {
   type ActivityFormInputs,
 } from "../components/ActivityForm";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form"; // Ainda necessário para resetar o form programaticamente
 import { useCategoriaStore } from "../store/categoriaStore";
 import { useUserStore } from "../store/userStore";
 import { useAtividadeStore } from "../store/atividadeStore";
 import { useAtividadesConcluidasStore } from "../store/atividadesConcluidasStore";
 import type { AtividadeConcluida } from "../interfaces/AtivdadeConcluida";
-import type { Atividade } from "../interfaces/Atividade"; // Importar a interface de Atividade
+import type { Atividade } from "../interfaces/Atividade";
 
-// Interface para os dados do modal de confirmação
+// Interface para os dados do modal de confirmação (agora para Edição/Registro)
 interface ConfirmationModalData {
   atividade: ActivityFormInputs;
   categoriaNome: string;
   certificadoFileName: string | undefined;
+  isEditing: boolean; // Indica se é uma confirmação de edição ou registro
 }
 
-const RegistrarAtividadePage: React.FC = () => {
+const EditarAtividadePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const prefilledData = location.state?.prefilledData as
-    | ActivityFormInputs
-    | undefined;
 
-  // Usa useForm para gerenciar o estado do formulário e o método reset
-  const methods = useForm<ActivityFormInputs>({
-    defaultValues: prefilledData, // Define os valores padrão iniciais
-  });
+  // Recebe a atividade e a atividade concluída do estado da rota
+  const { atividade, atividadeConcluida } = location.state as {
+    atividade: Atividade;
+    atividadeConcluida: AtividadeConcluida;
+  } || {}; // Desestrutura e fornece um objeto vazio como fallback
 
-  const { reset } = methods; // Obtém o método reset de methods
+  const isEditingMode = !!atividade && !!atividadeConcluida; // Entra em modo de edição se ambos existirem
+
+  const { reset } = useForm<ActivityFormInputs>(); // Usado para resetar o form
 
   const { getCategoriaByName } = useCategoriaStore();
   const currentUser = useUserStore((state) => state.user);
   const addAtividade = useAtividadeStore((state) => state.addAtividade);
+  const updateAtividade = useAtividadeStore((state) => state.updateAtividade); // NOVO
   const addAtividadeConcluida = useAtividadesConcluidasStore(
     (state) => state.addAtividadeConcluida
   );
+  const updateAtividadeConcluida = useAtividadesConcluidasStore(
+    (state) => state.updateAtividadeConcluida
+  ); // NOVO
 
   // Estados para o modal de confirmação
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -47,24 +53,55 @@ const RegistrarAtividadePage: React.FC = () => {
     ConfirmationModalData | undefined
   >(undefined);
 
-  useEffect(() => {
-    // Quando prefilledData muda (por exemplo, ao navegar com dados), reseta o formulário
-    if (prefilledData) {
-      reset(prefilledData);
-    } else {
-      // Se não houver prefilledData, reseta para um estado vazio
-      reset({
-        nome: "",
-        descricao: "",
-        inicio: "",
-        fim: "",
-        responsavel: "",
-        duracao: 0,
-        categoriaNome: "",
-        certificado: null,
-      });
+  // Prepara os dados iniciais para o ActivityForm
+  const initialPrefilledData: ActivityFormInputs | undefined = useMemo(() => {
+    if (isEditingMode) {
+      // Formata as datas para o formato "YYYY-MM-DD" que o input type="date" espera
+      const inicioFormatted = atividade.inicio instanceof Date ? atividade.inicio.toISOString().split('T')[0] : atividade.inicio;
+      const fimFormatted = atividade.fim instanceof Date ? atividade.fim.toISOString().split('T')[0] : (atividade.fim || '');
+
+      // Cria um FileList mock para o certificado existente, se houver
+      /* let certificadoFileList: FileList | null = null; */
+      if (atividadeConcluida.comprovante) {
+        // Você pode criar um File object mock se quiser "simular" o arquivo
+        // ou passar null e deixar o ActivityForm lidar com o display do nome.
+        // Para simplificar, se você só precisa exibir o nome, podemos manipular isso
+        // no ActivityForm. Aqui, para a prop `prefilledData.certificado` que é `FileList`,
+        // vamos ter que passar `null` e confiar que a lógica de `ActivityForm`
+        // exibirá o `certificadoFileName` corretamente quando o `prefilledData`
+        // for processado no useEffect de `ActivityForm` para configurar o `watch`.
+        // A melhor abordagem é passar o nome do arquivo existente como uma prop separada para `ActivityForm`
+        // e ele decide se mostra o nome do arquivo ou o FileList recém-selecionado.
+
+        // Para a prop `prefilledData` que espera `FileList`, passaremos `null` aqui.
+        // A exibição do nome do arquivo existente será gerenciada pelo ActivityForm
+        // através do `prefilledData.certificadoFileName` se criarmos essa prop.
+        // Por agora, vamos manter `certificado: null` e ajustar a exibição no `ActivityForm`.
+        // Já ajustamos a lógica de `hasCertificado` e `certificadoFileName` no `ActivityForm`
+        // para considerar `prefilledData.certificado` como o "arquivo que já existe".
+      }
+
+      return {
+        nome: atividade.nome,
+        descricao: atividade.descricao || "",
+        inicio: inicioFormatted,
+        fim: fimFormatted,
+        responsavel: atividade.responsavel,
+        duracao: atividade.duracao,
+        categoriaNome: atividade.categoria?.nome || "",
+        certificado: null, // O arquivo em si não pode ser pré-preenchido diretamente em um input file,
+                          // mas o ActivityForm pode saber que ele "existe" via prefilledData
+      };
     }
-  }, [prefilledData, reset]);
+    return undefined;
+  }, [isEditingMode, atividade, atividadeConcluida]);
+
+  useEffect(() => {
+    // Isso garante que o formulário seja resetado com os dados pré-preenchidos
+    // ou zerado quando a página é carregada ou o modo muda
+    reset(initialPrefilledData);
+  }, [initialPrefilledData, reset]);
+
 
   const onSubmit: SubmitHandler<ActivityFormInputs> = (data) => {
     const selectedCategory = getCategoriaByName(data.categoriaNome);
@@ -79,17 +116,20 @@ const RegistrarAtividadePage: React.FC = () => {
     const certificadoFileName =
       data.certificado && data.certificado.length > 0
         ? data.certificado[0].name
-        : undefined;
+        : (isEditingMode && atividadeConcluida.comprovante) // Se estiver editando e já houver comprovante
+          ? atividadeConcluida.comprovante.split('/').pop() // Pega o nome do arquivo do path
+          : undefined;
 
     setConfirmationData({
       atividade: data,
       categoriaNome: selectedCategory.nome,
       certificadoFileName: certificadoFileName,
+      isEditing: isEditingMode, // Passa o modo atual para o modal
     });
     setShowConfirmationModal(true);
   };
 
-  const handleConfirmRegistration = () => {
+  const handleConfirmAction = () => {
     if (!confirmationData || !currentUser) {
       alert(
         "Erro: Dados de confirmação ausentes ou usuário não logado. Tente novamente."
@@ -109,11 +149,9 @@ const RegistrarAtividadePage: React.FC = () => {
       return;
     }
 
-    // 1. Preparar os dados da atividade para o store de atividades.
-    const atividadeSemId: Omit<Atividade, "id"> = {
+    const newAtividadeData: Omit<Atividade, 'id'> = {
       nome: formData.nome,
       descricao: formData.descricao,
-      // Garante que as datas sejam criadas como objetos Date
       inicio: new Date(formData.inicio),
       fim: formData.fim ? new Date(formData.fim) : undefined,
       responsavel: formData.responsavel,
@@ -121,26 +159,39 @@ const RegistrarAtividadePage: React.FC = () => {
       duracao: formData.duracao,
     };
 
-    // 2. Adicionar a Atividade no store de atividades e CAPTURAR a atividade com o ID gerado
-    const atividadeAdicionada = addAtividade(atividadeSemId); // This call is now correctly typed
-
-    // 3. Adicionar a Atividade Concluída ao store de atividades concluídas, usando o ID REAL da atividade
-    const novaAtividadeConcluida: AtividadeConcluida = {
-      idAtividade: atividadeAdicionada.id, // Uses the ID returned by addAtividade
-      idUsuario: currentUser.id,
-      comprovante: confirmationData.certificadoFileName
+    if (isEditingMode && atividade && atividadeConcluida) {
+      // Lógica de EDIÇÃO
+      updateAtividade(atividade.id, newAtividadeData); // Atualiza a atividade
+      
+      const updatedComprovantePath = confirmationData.certificadoFileName
         ? `/uploads/${confirmationData.certificadoFileName}`
-        : undefined,
-    };
+        : undefined;
 
-    addAtividadeConcluida(novaAtividadeConcluida);
+      updateAtividadeConcluida(
+        atividade.id,
+        currentUser.id,
+        { comprovante: updatedComprovantePath }
+      );
+      alert("Atividade atualizada com sucesso!");
+    } else {
+      // Lógica de REGISTRO (do RegistrarAtividadePage original)
+      const atividadeAdicionada = addAtividade(newAtividadeData); // Adiciona a atividade
 
-    console.log("Atividade registrada e dados salvos nos stores!");
-    alert("Atividade registrada com sucesso!");
+      const novaAtividadeConcluida: AtividadeConcluida = {
+        idAtividade: atividadeAdicionada.id,
+        idUsuario: currentUser.id,
+        comprovante: confirmationData.certificadoFileName
+          ? `/uploads/${confirmationData.certificadoFileName}`
+          : undefined,
+      };
+      addAtividadeConcluida(novaAtividadeConcluida);
+      alert("Atividade registrada com sucesso!");
+    }
 
+    console.log("Ação concluída e dados salvos nos stores!");
     setShowConfirmationModal(false);
-    handleClear();
-    navigate("/dashboard"); // <-- REDIRECIONAMENTO ADICIONADO AQUI
+    handleClear(); // Limpa o formulário após a ação
+    navigate('/dashboard/atividades'); // Redireciona para a lista
   };
 
   const handleCancelConfirmation = () => {
@@ -149,7 +200,7 @@ const RegistrarAtividadePage: React.FC = () => {
   };
 
   const handleClear = () => {
-    console.log("Formulário limpo pela página pai (RegistrarAtividadePage)");
+    console.log("Formulário limpo pela página pai (EditarAtividadePage)");
     reset({
       nome: "",
       descricao: "",
@@ -171,7 +222,8 @@ const RegistrarAtividadePage: React.FC = () => {
     onClose: () => void;
     onConfirm: () => void;
     data: ConfirmationModalData;
-  }> = ({ show, onClose, onConfirm, data }) => {
+    currentUserNome: string | undefined; // Para exibir no modal
+  }> = ({ show, onClose, onConfirm, data, currentUserNome }) => {
     if (!show || !data) return null;
 
     return (
@@ -184,7 +236,9 @@ const RegistrarAtividadePage: React.FC = () => {
         <div className="modal-dialog modal-dialog-centered" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">Confirmar Registro de Atividade</h5>
+              <h5 className="modal-title">
+                Confirmar {data.isEditing ? "Edição" : "Registro"} de Atividade
+              </h5>
               <button
                 type="button"
                 className="btn-close"
@@ -194,9 +248,9 @@ const RegistrarAtividadePage: React.FC = () => {
             </div>
             <div className="modal-body">
               <p>
-                Você deseja realmente registrar a seguinte atividade para o
+                Você deseja realmente {data.isEditing ? "atualizar" : "registrar"} a seguinte atividade para o
                 usuário{" "}
-                <strong>{currentUser?.nome || "Não logado"}</strong>?
+                <strong>{currentUserNome || "Não logado"}</strong>?
               </p>
               <ul className="list-group mb-3">
                 <li className="list-group-item">
@@ -243,7 +297,7 @@ const RegistrarAtividadePage: React.FC = () => {
                 className="btn btn-primary"
                 onClick={onConfirm}
               >
-                Confirmar Registro
+                Confirmar {data.isEditing ? "Edição" : "Registro"}
               </button>
             </div>
           </div>
@@ -257,7 +311,7 @@ const RegistrarAtividadePage: React.FC = () => {
       <div className="container pt-5 pb-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1 className="mb-0" style={{ fontWeight: "bold" }}>
-            Registrar Atividade Complementar
+            {isEditingMode ? "Editar Atividade Complementar" : "Registrar Atividade Complementar"}
           </h1>
           <button
             onClick={handleGoBack}
@@ -275,15 +329,17 @@ const RegistrarAtividadePage: React.FC = () => {
           onSubmit={onSubmit}
           onClear={handleClear}
           precisaCertificado={true}
-          prefilledData={prefilledData}
+          prefilledData={initialPrefilledData} // Passa os dados pré-preenchidos aqui
+          isEditing={isEditingMode} // Indica o modo de edição
         />
 
-        {showConfirmationModal && confirmationData && (
+        {showConfirmationModal && confirmationData && ( // Renderiza condicionalmente
           <ConfirmationModal
             show={showConfirmationModal}
             onClose={handleCancelConfirmation}
-            onConfirm={handleConfirmRegistration}
+            onConfirm={handleConfirmAction} // Agora chama handleConfirmAction
             data={confirmationData}
+            currentUserNome={currentUser?.nome}
           />
         )}
       </div>
@@ -291,4 +347,4 @@ const RegistrarAtividadePage: React.FC = () => {
   );
 };
 
-export default RegistrarAtividadePage;
+export default EditarAtividadePage;

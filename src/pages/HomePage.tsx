@@ -1,12 +1,20 @@
 import { Link } from "react-router-dom";
-import Card from "../components/Card"; // Certifique-se de que o caminho está correto
-import { eventData } from "../interfaces/Evento"; // Importa eventData do arquivo Evento.ts
+import Card from "../components/Card";
+// Remova a importação direta de eventData, pois usaremos o store
+// import { eventData } from "../interfaces/Evento"; 
 
-import dayjs from "dayjs"; // Import dayjs
-import "dayjs/locale/pt-br"; // Import pt-br locale for dayjs
-dayjs.locale("pt-br"); // Set dayjs locale to pt-br
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
+import { useEventStore } from "../store/eventoStore";
+dayjs.locale("pt-br");
 
 const HomePage = () => {
+  // Acessa a função getEventos do seu store
+  const getEventos = useEventStore((state) => state.getEventos);
+
+  // Obtém os eventos do store e pega apenas os 4 primeiros
+  const eventosParaExibir = getEventos().slice(0, 4);
+
   // Dados dos cards para facilitar a renderização e reutilização
   const cardData = [
     {
@@ -26,8 +34,8 @@ const HomePage = () => {
     {
       id: 3,
       imageUrl: "perguntas.jpg",
-      title: "Perguntas Frequentes", // Ajustei o título para refletir o conteúdo
-      text: "As dúvidas mais comuns sobre Atividades Complementares", // Adapte o texto se for diferente
+      title: "Perguntas Frequentes",
+      text: "As dúvidas mais comuns sobre Atividades Complementares",
       linkTo: "/perguntas",
     },
   ];
@@ -36,8 +44,6 @@ const HomePage = () => {
     <>
       {/* Seção Principal com Imagem de Fundo */}
       <div className="background-div text-white">
-        {" "}
-        {/* `d-flex` removido do pai para divs empilharem */}
         <div className="container">
           <div className="row pt-5">
             <h1
@@ -79,17 +85,14 @@ const HomePage = () => {
           <div className="row pt-5">
             <h2 className="mb-5 col-12" style={{ fontWeight: "bold" }}>
               {" "}
-              {/* col-12 para h2 ocupar a largura toda */}
               Atividades Complementares:
             </h2>
 
             {/* Versão para telas GRANDES (md e acima) - Cards em Colunas */}
             <div className="row d-none d-md-flex">
               {" "}
-              {/* Esconde em sm-, mostra em md+ */}
               {cardData.map((card) => (
                 <div className="col-md-4 mb-4" key={card.id}>
-                  {/* Cada Card é um Link */}
                   <Link
                     to={card.linkTo}
                     className="text-decoration-none text-dark"
@@ -107,7 +110,6 @@ const HomePage = () => {
             {/* Versão para telas PEQUENAS (sm e abaixo) - Carrossel de Cards */}
             <div className="d-md-none col-12">
               {" "}
-              {/* Esconde em md+, mostra em sm- e abaixo */}
               <div
                 id="cardsCarousel"
                 className="carousel slide"
@@ -119,7 +121,6 @@ const HomePage = () => {
                       className={`carousel-item ${index === 0 ? "active" : ""}`}
                       key={card.id}
                     >
-                      {/* Centraliza o Card dentro do item do carrossel */}
                       <div className="d-flex justify-content-center px-4">
                         <Link
                           to={card.linkTo}
@@ -168,8 +169,6 @@ const HomePage = () => {
       </div>
       {/* Seção de Eventos */}
       <div className="background-div-no-image text-white pb-5">
-        {" "}
-        {/* Ajustado para não ter d-flex aqui para o container rolar abaixo */}
         <div className="container pt-5">
           <h2 className="mb-5 col-12" style={{ fontWeight: "bold" }}>
             Próximos Eventos:
@@ -179,13 +178,16 @@ const HomePage = () => {
             <Link
               className="comece-agora-link col-2 text-decoration-none mb-2  mx-2"
               to="/eventos"
-              style={{fontSize: "1.25em"}}
-            > Ver Todos <i className="bi bi-chevron-right"></i>
+              style={{ fontSize: "1.25em" }}
+            >
+              {" "}
+              Ver Todos <i className="bi bi-chevron-right"></i>
             </Link>
             <div className="col-12"></div>
             <div className="col-12 col-md-6">
               <div className="event-list-container">
-                {eventData.map((event) => (
+                {/* Iterando sobre os eventos obtidos do store, limitados a 4 */}
+                {eventosParaExibir.map((event) => (
                   <div className="event-item mb-3 p-3 rounded" key={event.id}>
                     <h5 className="event-title mb-1">
                       <Link
@@ -196,7 +198,6 @@ const HomePage = () => {
                         {event.name}{" "}
                       </Link>
                       <span className="event-date text-muted fst-italic ms-2">
-                        {/* Fixed: Use startDate and endDate with Day.js for formatting */}
                         - {dayjs(event.startDate).format("DD/MM/YYYY HH:mm")}{" "}
                         até {dayjs(event.endDate).format("DD/MM/YYYY HH:mm")}
                       </span>

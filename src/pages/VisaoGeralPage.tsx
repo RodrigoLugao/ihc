@@ -82,14 +82,109 @@ const VisaoGeralPage: React.FC = () => {
         {usuario ? (
           <>
             <h1>Olá, {usuario.nome}</h1>
-            <p>
-              Você completou <b>{horasACCalculadas.toFixed(0)} horas</b> de
-              Atividades Complementares.
-            </p>
-            <p>
-              Faltam <b>{horasFaltando.toFixed(0)} horas</b> para completar o
-              requisito.
-            </p>
+            {usuario.id !== 999 ? (
+              <></>
+            ) : (
+              <p>
+                Já registrou alguma atividade anteriormente?{" "}
+                <Link
+                  className="comece-agora-link text-decoration-none"
+                  to="/login"
+                  state={{ from: location.pathname }}
+                >
+                  Faça login para recuperar as informações
+                </Link>
+              </p>
+            )}
+            {horasACCalculadas > 0 ? (
+              <>
+                <p>
+                  Você completou <b>{horasACCalculadas.toFixed(0)} horas</b> de{" "}
+                  <Link
+                    to="/dashboard/atividades"
+                    className="comece-agora-link"
+                  >
+                    Atividades Complementares
+                  </Link>
+                </p>
+                {horasFaltando <= 0 ? (
+                  <>
+                    {" "}
+                    <p>
+                      Parabéns, você já tem horas de atividades complementares
+                      suficientes!{" "}
+                      <Link
+                        to="/dahsboard/pre-formulario"
+                        className="comece-agora-link"
+                      >
+                        Preencha o formulário de solicitação de registro de ACs
+                      </Link>
+                    </p>{" "}
+                    <p>
+                      Ou confira as{" "}
+                      <Link
+                        to="/atividades#tabela-atividades"
+                        className="comece-agora-link"
+                      >
+                        Atividades ja registradas
+                      </Link>
+                    </p>{" "}
+                  </>
+                ) : (
+                  <><p>
+                    Faltam <b>{horasFaltando.toFixed(0)} horas</b> para
+                    completar o requisito.
+                  </p>
+                  <p>
+                    <Link to="/dashboard/registrar" className="comece-agora-link">
+                                Registre suas Atividades Complementares
+                              </Link>{" "} ou {" "} <Link to="/eventos" className="comece-agora-link">
+                                          Descubra novas Atividades
+                                        </Link>
+                  </p>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <p>Você ainda não completou nenhuma atividade complementar.</p>
+                <p>
+                  Deseja{" "}
+                  <Link
+                    to="/dashboard/registrar"
+                    className="comece-agora-link text-decoration-none"
+                  >
+                    Registrar uma atividade complementar que tenha participado
+                  </Link>{" "}
+                  ou{" "}
+                  <Link
+                    to="/eventos"
+                    className="comece-agora-link text-decoration-none"
+                  >
+                    Descobrir novas atividades complementares
+                  </Link>{" "}
+                  ?
+                </p>
+                <p>
+                  Ou, se preferir, pode{" "}
+                  <Link
+                    to="/atividades"
+                    className="comece-agora-link text-decoration-none"
+                  >
+                    Ver as regras de atividades complementares
+                  </Link>{" "}
+                  e{" "}
+                  <Link
+                    to="/dashboard/pre-formulario"
+                    className="comece-agora-link text-decoration-none"
+                  >
+                    Preencher o formulário de atividades complementares com a
+                    nossa ajuda
+                  </Link>
+                  .
+                </p>
+              </>
+            )}
 
             <h2 className="mt-5">Visão Geral das Horas de AC</h2>
             <hr className="my-4" />
@@ -98,6 +193,7 @@ const VisaoGeralPage: React.FC = () => {
               style={{ height: "700px" }}
             >
               {pieChartData.labels.length > 0 &&
+              horasACCalculadas > 0 &&
               pieChartData.datasets[0].data.some((val: number) => val > 0) ? (
                 <Pie data={pieChartData} options={chartOptions} />
               ) : (
@@ -110,61 +206,10 @@ const VisaoGeralPage: React.FC = () => {
           </>
         ) : (
           <>
-            <h1>Olá, visitante!</h1>
+            <h1>Não conseguimos recuperar um usuário, erro</h1>
             <p>
               Você ainda não está logado. Faça login para ver seu dashboard de
               Atividades Complementares.
-            </p>
-            <p>
-              Já registrou alguma atividade?{" "}
-              <Link
-                className="comece-agora-link text-decoration-none"
-                to="/login"
-                state={{ from: location.pathname }}
-              >
-                Faça login para recuperar as informações
-              </Link>
-            </p>
-            {/* Esta mensagem sobre currículo faltante só faz sentido se o usuário estiver logado e a informação estiver faltando */}
-            {/* <p>
-                Desculpe, faltou a informação de qual currículo seguir, por favor,
-                entre em contato com o suporte ou preencha essa informação em seu
-                perfil.
-              </p> */}
-            <p>
-              Deseja{" "}
-              <Link
-                to="/registrar-atividade"
-                className="comece-agora-link text-decoration-none"
-              >
-                Registrar uma atividade complementar que tenha participado
-              </Link>{" "}
-              ou{" "}
-              <Link
-                to="/eventos"
-                className="comece-agora-link text-decoration-none"
-              >
-                Descobrir novas atividades complementares
-              </Link>{" "}
-              ?
-            </p>
-            <p>
-              Ou, se preferir, pode{" "}
-              <Link
-                to="/atividades-complementares"
-                className="comece-agora-link text-decoration-none"
-              >
-                Ver as regras de atividades complementares
-              </Link>{" "}
-              e{" "}
-              <Link
-                to="/formulario-solicitacao"
-                className="comece-agora-link text-decoration-none"
-              >
-                Preencher o formulário de atividades complementares com a nossa
-                ajuda
-              </Link>
-              .
             </p>
           </>
         )}

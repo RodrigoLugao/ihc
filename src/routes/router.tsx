@@ -15,6 +15,7 @@ import VisaoGeralPage from "../pages/VisaoGeralPage";
 import PreRegistrarPage from "../pages/PreRegistrarPage";
 import ListaAtividadesPessoalPage from "../pages/ListaAtividadesPessoalPage";
 import PreFormularioPage from "../pages/PreFormularioPage";
+import EditarAtividadePage from "../pages/EdiitarAtividadePage";
 
 const router = createBrowserRouter(
   [
@@ -64,6 +65,10 @@ const router = createBrowserRouter(
         {
           path: "registrar-atividade",
           element: <RegistrarAtividadePage/>
+        },
+        {
+          path: "editar-atividade",
+          element: <EditarAtividadePage/>
         },
         {
           path: "esqueci-a-senha",

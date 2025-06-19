@@ -1,37 +1,30 @@
 // src/pages/EventosPage.tsx
 import { useState, useEffect, useCallback } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Removi 'replace' pois não é mais necessário chamá-lo explicitamente
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
-// isSameOrBefore e isSameOrAfter agora são estendidos no eventStore.ts
-// dayjs.extend(isSameOrBefore);
-// dayjs.extend(isSameOrAfter);
 
-// import { eventData, type Evento } from "../interfaces/Evento"; // REMOVIDO: Usaremos o store
-import type { Evento } from "../interfaces/Evento"; // Mantenha a importação da interface
+import type { Evento } from "../interfaces/Evento";
 import type { EventSearchForm } from "../components/FormBuscaEventos";
 import FormBuscaEventos from "../components/FormBuscaEventos";
-import { type CurriculoTipo } from "../utils/acutils"; // Ainda necessário para a interface de filtro
+import { type CurriculoTipo } from "../utils/acutils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useEventStore } from "../store/eventoStore";
 
-
 dayjs.locale("pt-br");
 
 const EventosPage = () => {
-  // REMOVIDO: allFilteredEvents não é mais um estado local, é gerado pelo store
-  // const [allFilteredEvents, setAllFilteredEvents] = useState<Evento[]>([]);
   const [displayedEvents, setDisplayedEvents] = useState<Evento[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Inicializa como true
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Obtenha a função do store
+  // Obtenha as funções do store
   const { initializeStore, getFilteredEvents } = useEventStore();
-  // Pega o estado `eventos` para re-renderizar quando o store muda (se necessário, embora getFilteredEvents já chame initializeStore)
-  const allEventsFromStore = useEventStore((state) => state.eventos);
 
+  // Pega o estado `eventos` para re-renderizar quando o store muda (importante para novos eventos/edições)
+  const allEventsFromStore = useEventStore((state) => state.eventos);
 
   const [initialFormValues, setInitialFormValues] =
     useState<EventSearchForm | null>(null);
@@ -40,6 +33,7 @@ const EventosPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(4);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0);
   // --- Fim Estados de Paginação ---
 
   // parseQueryParams agora lida com 'categories' e 'excludeCategories' como arrays na URL
@@ -56,7 +50,6 @@ const EventosPage = () => {
       maxHours: queryParams.get("maxHours")
         ? Number(queryParams.get("maxHours"))
         : "",
-      // Lendo categorias como arrays da URL, esperando que venham como strings separadas por vírgula
       categories: queryParams.get("categories")
         ? queryParams
             .get("categories")!
@@ -78,78 +71,62 @@ const EventosPage = () => {
     return {
       filters,
       page: queryParams.get("page") ? Number(queryParams.get("page")) : 1,
-      limit: queryParams.get("limit") ? Number(queryParams.get("limit")) : 4,
+      // O limite de itens por página é fixo aqui, não lido da URL para simplificar
+      // limit: queryParams.get("limit") ? Number(queryParams.get("limit")) : 4,
     };
   }, [location.search]);
 
-  // Função centralizada para aplicar filtros e paginação
-  const applyFiltersAndPaginate = useCallback(
-    (filters: EventSearchForm, page: number) => {
-      setIsLoading(true);
-      // Pega os eventos já filtrados diretamente do store
-      const filteredEvents = getFilteredEvents(filters);
 
-      // --- Aplicar Paginação ---
-      const totalCount = filteredEvents.length;
-      const calculatedTotalPages = Math.ceil(totalCount / itemsPerPage);
-      setTotalPages(calculatedTotalPages);
-
-      const startIdx = (page - 1) * itemsPerPage;
-      const endIdx = startIdx + itemsPerPage;
-      const paginatedEvents = filteredEvents.slice(startIdx, endIdx);
-
-      // REMOVIDO: setAllFilteredEvents não é mais necessário aqui
-      // setAllFilteredEvents(filteredEvents);
-      setDisplayedEvents(paginatedEvents);
-      setCurrentPage(page);
-
-      setIsLoading(false);
-      console.log("Busca finalizada. Total de eventos filtrados:", totalCount);
-      console.log("Eventos exibidos na página atual:", paginatedEvents.length);
-    },
-    [getFilteredEvents, itemsPerPage] // Dependências: getFilteredEvents (do store) e itemsPerPage
-  );
-
-  // Efeito para carregar filtros da URL e aplicar a busca inicial
+  // Efeito principal para carregar filtros da URL e aplicar a busca e paginação
   useEffect(() => {
-    // Garante que o store está inicializado antes de tentar usar seus dados
-    initializeStore();
+    setIsLoading(true); // Inicia loading
 
-    const { filters, page } = parseQueryParams(); // Desestrutura os filtros e a página
+    initializeStore(); // Garante que o store está inicializado
 
-    // Verifica se há algum parâmetro de filtro para inicializar o formulário
-    const hasAnyFilterParam = Object.values(filters).some(
-      (value) =>
-        (typeof value === "string" && value !== "") ||
-        (typeof value === "number" &&
-          !isNaN(value) &&
-          value !== Infinity &&
-          value !== -Infinity) ||
-        (Array.isArray(value) && value.length > 0) // Inclui verificação para arrays não vazios
-    );
+    const { filters, page } = parseQueryParams(); // Lê os filtros e a página da URL
 
-    if (hasAnyFilterParam) {
-      setInitialFormValues(filters); // Define apenas os filtros para o formulário
-      applyFiltersAndPaginate(filters, page); // Aplica a busca com os filtros e a página da URL
-    } else {
-      setInitialFormValues(null); // Reseta os valores do formulário
-      // Aplica a busca sem filtros e na primeira página (se não houver filtros na URL)
-      applyFiltersAndPaginate(
-        {
-          searchTerm: "",
-          startDate: "",
-          endDate: "",
-          location: "",
-          minHours: "",
-          maxHours: "",
-          categories: [],
-          curriculoType: "curriculoNovo",
-          excludeCategories: [],
-        },
-        1
-      );
+    // Aplica os filtros para obter a lista completa de eventos filtrados
+    const filteredResults = getFilteredEvents(filters);
+    setTotalFilteredCount(filteredResults.length); // Atualiza a contagem total
+
+    // --- Aplicar Paginação ---
+    const totalCount = filteredResults.length;
+    const calculatedTotalPages = Math.ceil(totalCount / itemsPerPage);
+    setTotalPages(calculatedTotalPages);
+
+    // Ajusta a página atual se ela for maior que o total de páginas (ex: filtro remove eventos da última página)
+    let actualPage = page;
+    if (page > calculatedTotalPages && calculatedTotalPages > 0) {
+        actualPage = calculatedTotalPages;
+        // Opcional: Navegar para a URL da última página válida se a página atual for inválida
+        const newQueryParams = new URLSearchParams(location.search);
+        newQueryParams.set("page", String(actualPage));
+        navigate(`${location.pathname}?${newQueryParams.toString()}`, { replace: true });
+        // Retornar aqui para que o useEffect re-execute com a URL corrigida
+        return;
+    } else if (calculatedTotalPages === 0) {
+        actualPage = 1; // Se não há eventos, volta para a página 1
     }
-  }, [location.search, applyFiltersAndPaginate, parseQueryParams, initializeStore]); // Adicione initializeStore
+
+
+    const startIdx = (actualPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const paginatedEvents = filteredResults.slice(startIdx, endIdx);
+
+    setDisplayedEvents(paginatedEvents);
+    setCurrentPage(actualPage); // Define a página atual
+    setIsLoading(false);
+
+    // Define os valores iniciais do formulário com base nos filtros da URL
+    setInitialFormValues(filters);
+
+    console.log("Busca e Paginação finalizada.");
+    console.log("Filtros aplicados:", filters);
+    console.log("Página atual:", actualPage);
+    console.log("Total de eventos filtrados:", totalCount);
+    console.log("Eventos exibidos na página atual:", paginatedEvents.length);
+
+  }, [location.search, itemsPerPage, initializeStore, parseQueryParams, getFilteredEvents, allEventsFromStore, navigate]); // Dependências
 
   // Função que o FormBuscaEventos chamará ao submeter
   const handleSearchSubmit = (filters: EventSearchForm) => {
@@ -179,39 +156,14 @@ const EventosPage = () => {
     }
 
     newQueryParams.set("page", "1"); // Sempre define a página para 1 em uma nova busca
-    newQueryParams.set("limit", String(itemsPerPage));
+    // newQueryParams.set("limit", String(itemsPerPage)); // Não precisa setar o limit, ele é fixo
 
-    navigate(`${location.pathname}?${newQueryParams.toString()}`, { replace: true });
+    navigate(`${location.pathname}?${newQueryParams.toString()}`); // Não precisa de { replace: true } aqui
   };
 
   const handleClearFilters = () => {
-    setIsLoading(true); // Começa a carregar
-    const currentPath = location.pathname;
-    const currentSearch = location.search;
-    const newSearch = ""; // A URL limpa
-
-    // Verifica se a URL já está limpa para evitar navegação desnecessária
-    if (currentSearch === newSearch) {
-      setIsLoading(false);
-      applyFiltersAndPaginate( // Aplica a busca sem filtros para resetar a exibição
-        {
-          searchTerm: "",
-          startDate: "",
-          endDate: "",
-          location: "",
-          minHours: "",
-          maxHours: "",
-          categories: [],
-          curriculoType: "curriculoNovo",
-          excludeCategories: [],
-        },
-        1
-      );
-    } else {
-      // Se a URL não está limpa, navega para limpar, o useEffect cuidará do resto
-      navigate(currentPath, { replace: true });
-      // O setIsLoading(false) será chamado pelo useEffect após applyFiltersAndPaginate
-    }
+    // Apenas navega para a URL base. O useEffect será re-executado e redefinirá os filtros.
+    navigate(location.pathname);
   };
 
   // Lógica de Paginação para botões na EventosPage
@@ -232,7 +184,6 @@ const EventosPage = () => {
     if (filters.maxHours !== "" && filters.maxHours !== null)
       newQueryParams.set("maxHours", String(filters.maxHours));
 
-    // Copia as categorias como strings separadas por vírgula para a URL
     if (filters.categories && filters.categories.length > 0) {
       newQueryParams.set("categories", filters.categories.join(","));
     }
@@ -245,9 +196,9 @@ const EventosPage = () => {
       );
     }
 
-    // Define a nova página e mantém o limite de itens
+    // Define a nova página
     newQueryParams.set("page", String(page));
-    newQueryParams.set("limit", String(itemsPerPage));
+    // newQueryParams.set("limit", String(itemsPerPage)); // Não precisa setar o limit
 
     navigate(`${location.pathname}?${newQueryParams.toString()}`);
   };
@@ -256,30 +207,6 @@ const EventosPage = () => {
   const handleGoBack = () => {
     navigate(-1); // Volta uma entrada no histórico do navegador
   };
-
-  // O estado 'allFilteredEvents' não é mais necessário localmente.
-  // Você pode obter a contagem total de eventos filtrados a partir de `getFilteredEvents`
-  // antes de aplicar a paginação no `applyFiltersAndPaginate`.
-  // Para exibir a contagem total, precisaremos recalcular isso no `useEffect` ou `useCallback`.
-  const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0);
-
-  useEffect(() => {
-    initializeStore(); // Garante que o store está inicializado
-    const { filters, page } = parseQueryParams();
-    const filteredResults = getFilteredEvents(filters); // Obtém todos os eventos filtrados
-    setTotalFilteredCount(filteredResults.length); // Define a contagem total
-
-    // Aplica a paginação sobre os eventos filtrados
-    const startIdx = (page - 1) * itemsPerPage;
-    const endIdx = startIdx + itemsPerPage;
-    const paginated = filteredResults.slice(startIdx, endIdx);
-
-    setDisplayedEvents(paginated);
-    setCurrentPage(page);
-    setTotalPages(Math.ceil(filteredResults.length / itemsPerPage));
-    setIsLoading(false);
-  }, [location.search, itemsPerPage, initializeStore, parseQueryParams, getFilteredEvents, allEventsFromStore]); // Adicione allEventsFromStore para re-executar quando o estado do store mudar
-
 
   return (
     <div className="background-div-2 text-white py-5">

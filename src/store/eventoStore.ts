@@ -1,24 +1,25 @@
 // src/store/eventStore.ts
-import { create } from 'zustand';
-import dayjs from 'dayjs';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import { create } from "zustand";
+import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 
-import { eventData, type Evento } from '../interfaces/Evento';
-import type { EventSearchForm } from '../components/FormBuscaEventos';
-import type { CurriculoTipo } from '../utils/acutils';
+import { eventData, type Evento } from "../interfaces/Evento";
+import type { EventSearchForm } from "../components/FormBuscaEventos";
+import type { CurriculoTipo } from "../utils/acutils";
 
 // Chave para o localStorage
-const LOCAL_STORAGE_KEY = 'eventStore';
+const LOCAL_STORAGE_KEY = "eventStore";
 
 // --- Funções Auxiliares de Serialização/Desserialização para localStorage ---
 
-const reviveDates = (key: string, value: any): any => {
-  if (typeof value === 'string') {
-    const dateMatch = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?$/.exec(value);
+const reviveDates = (_: string, value: any): any => {
+  if (typeof value === "string") {
+    const dateMatch =
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?$/.exec(value);
     if (dateMatch) {
       const date = new Date(value);
       if (!isNaN(date.getTime())) {
@@ -29,7 +30,7 @@ const reviveDates = (key: string, value: any): any => {
   return value;
 };
 
-const replacerForDates = (key: string, value: any): any => {
+const replacerForDates = (_: string, value: any): any => {
   if (value instanceof Date) {
     return value.toISOString();
   }
@@ -49,12 +50,14 @@ interface EventStore {
   updateEvento: (id: number, updatedFields: Partial<Evento>) => void;
   removeEvento: (id: number) => void;
   getFilteredEvents: (filters: EventSearchForm) => Evento[];
+  // NOVA FUNÇÃO: Buscar eventos por ID de Atividade
+  getEventosByAtividadeId: (atividadeId: number) => Evento[];
 }
 
 // --- Criação do Store ---
 
 export const useEventStore = create<EventStore>((set, get) => ({
-  eventos: [],
+  eventos: [], // Estado inicial é um array vazio
   initialized: false,
 
   initializeStore: () => {
@@ -62,47 +65,94 @@ export const useEventStore = create<EventStore>((set, get) => ({
       const storedEventos = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (storedEventos) {
         try {
-          const parsedEventos: Evento[] = JSON.parse(storedEventos, reviveDates);
-          set({ eventos: parsedEventos, initialized: true });
-          console.log('Eventos carregados do localStorage e datas restauradas.');
+          const parsedEventos: Evento[] = JSON.parse(
+            storedEventos,
+            reviveDates
+          );
+          set({
+            eventos: Array.isArray(parsedEventos) ? parsedEventos : [],
+            initialized: true,
+          });
+          console.log(
+            "Eventos carregados do localStorage e datas restauradas."
+          );
         } catch (e) {
-          console.error("Erro ao carregar eventos do localStorage, inicializando com dados padrão:", e);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(eventData, replacerForDates));
-          set({ eventos: eventData, initialized: true });
+          console.error(
+            "Erro ao carregar eventos do localStorage, inicializando com dados padrão:",
+            e
+          );
+          localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(
+              Array.isArray(eventData) ? eventData : [],
+              replacerForDates
+            )
+          );
+          set({
+            eventos: Array.isArray(eventData) ? eventData : [],
+            initialized: true,
+          });
         }
       } else {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(eventData, replacerForDates));
-        set({ eventos: eventData, initialized: true });
-        console.log('Eventos inicializados a partir de eventData.ts e salvos no localStorage.');
+        localStorage.setItem(
+          LOCAL_STORAGE_KEY,
+          JSON.stringify(
+            Array.isArray(eventData) ? eventData : [],
+            replacerForDates
+          )
+        );
+        set({
+          eventos: Array.isArray(eventData) ? eventData : [],
+          initialized: true,
+        });
+        console.log(
+          "Eventos inicializados a partir de eventData.ts e salvos no localStorage."
+        );
       }
     }
   },
 
   getEventos: () => {
     get().initializeStore();
-    return get().eventos;
+    const currentEventos = get().eventos;
+    return Array.isArray(currentEventos) ? currentEventos : [];
   },
 
   getEventoById: (id: number) => {
     get().initializeStore();
-    return get().eventos.find(evento => evento.id === id);
+    const currentEventos = get().eventos;
+    return Array.isArray(currentEventos)
+      ? currentEventos.find((evento) => evento.id === id)
+      : undefined;
   },
 
   getEventoBySlug: (slug: string) => {
     get().initializeStore();
     const lowerCaseSlug = slug.toLowerCase();
-    return get().eventos.find(evento => evento.slug.toLowerCase() === lowerCaseSlug);
+    const currentEventos = get().eventos;
+    return Array.isArray(currentEventos)
+      ? currentEventos.find(
+          (evento) => evento.slug.toLowerCase() === lowerCaseSlug
+        )
+      : undefined;
   },
 
   addEvento: (newEvento: Evento) => {
     get().initializeStore();
     set((state) => {
-      const currentMaxId = state.eventos.length > 0 ? Math.max(...state.eventos.map(e => e.id)) : 0;
+      const currentEventos = Array.isArray(state.eventos) ? state.eventos : [];
+      const currentMaxId =
+        currentEventos.length > 0
+          ? Math.max(...currentEventos.map((e) => e.id))
+          : 0;
       const nextId = currentMaxId + 1;
       const eventoToAdd = { ...newEvento, id: nextId };
 
-      const updatedEventos = [...state.eventos, eventoToAdd];
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedEventos, replacerForDates));
+      const updatedEventos = [...currentEventos, eventoToAdd];
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(updatedEventos, replacerForDates)
+      );
       return { eventos: updatedEventos };
     });
   },
@@ -110,10 +160,14 @@ export const useEventStore = create<EventStore>((set, get) => ({
   updateEvento: (id: number, updatedFields: Partial<Evento>) => {
     get().initializeStore();
     set((state) => {
-      const updatedEventos = state.eventos.map((evento) =>
+      const currentEventos = Array.isArray(state.eventos) ? state.eventos : [];
+      const updatedEventos = currentEventos.map((evento) =>
         evento.id === id ? { ...evento, ...updatedFields } : evento
       );
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedEventos, replacerForDates));
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(updatedEventos, replacerForDates)
+      );
       return { eventos: updatedEventos };
     });
   },
@@ -121,23 +175,28 @@ export const useEventStore = create<EventStore>((set, get) => ({
   removeEvento: (id: number) => {
     get().initializeStore();
     set((state) => {
-      const updatedEventos = state.eventos.filter(
+      const currentEventos = Array.isArray(state.eventos) ? state.eventos : [];
+      const updatedEventos = currentEventos.filter(
         (evento) => evento.id !== id
       );
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedEventos, replacerForDates));
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(updatedEventos, replacerForDates)
+      );
       return { eventos: updatedEventos };
     });
   },
 
-  // --- MÉTODO getFilteredEvents OTIMIZADO ---
   getFilteredEvents: (filters: EventSearchForm): Evento[] => {
-    get().initializeStore(); // Garante que os dados estejam carregados
+    get().initializeStore();
 
-    let filteredEvents = [...get().eventos]; // Começa com todos os eventos do store
+    let filteredEvents = [
+      ...(Array.isArray(get().eventos) ? get().eventos : []),
+    ];
 
-    const selectedCurriculoType: CurriculoTipo = filters.curriculoType || "curriculoNovo";
+    const selectedCurriculoType: CurriculoTipo =
+      filters.curriculoType || "curriculoNovo";
 
-    // 1. Filtrar por termo de busca (nome ou descrição do evento)
     if (filters.searchTerm) {
       const lowerCaseSearchTerm = filters.searchTerm.toLowerCase();
       filteredEvents = filteredEvents.filter(
@@ -147,7 +206,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
       );
     }
 
-    // 2. Filtrar por data de início do evento
     if (filters.startDate) {
       const searchStartDate = dayjs(filters.startDate);
       if (searchStartDate.isValid()) {
@@ -155,11 +213,13 @@ export const useEventStore = create<EventStore>((set, get) => ({
           dayjs(event.startDate).isSameOrAfter(searchStartDate, "day")
         );
       } else {
-        console.warn("Data de início inválida fornecida no filtro de evento:", filters.startDate);
+        console.warn(
+          "Data de início inválida fornecida no filtro de evento:",
+          filters.startDate
+        );
       }
     }
 
-    // 3. Filtrar por data de fim do evento
     if (filters.endDate) {
       const searchEndDate = dayjs(filters.endDate);
       if (searchEndDate.isValid()) {
@@ -167,11 +227,13 @@ export const useEventStore = create<EventStore>((set, get) => ({
           dayjs(event.endDate).isSameOrBefore(searchEndDate, "day")
         );
       } else {
-        console.warn("Data de fim inválida fornecida no filtro de evento:", filters.endDate);
+        console.warn(
+          "Data de fim inválida fornecida no filtro de evento:",
+          filters.endDate
+        );
       }
     }
 
-    // 4. Filtrar por local do evento
     if (filters.location) {
       const lowerCaseLocation = filters.location.toLowerCase();
       filteredEvents = filteredEvents.filter((event) =>
@@ -179,68 +241,83 @@ export const useEventStore = create<EventStore>((set, get) => ({
       );
     }
 
-    // Validar e padronizar valores de horas
-    const minHoursValue = filters.minHours ? Number(filters.minHours) : -Infinity;
-    const maxHoursValue = filters.maxHours ? Number(filters.maxHours) : Infinity;
+    const minHoursValue = filters.minHours
+      ? Number(filters.minHours)
+      : -Infinity;
+    const maxHoursValue = filters.maxHours
+      ? Number(filters.maxHours)
+      : Infinity;
 
-    // Padronizar categorias para minúsculas e usar Sets para busca eficiente
     const selectedCategoriesToInclude = new Set(
-      filters.categories?.map(cat => cat.toLowerCase()) || []
+      filters.categories?.map((cat) => cat.toLowerCase()) || []
     );
     const selectedCategoriesToExclude = new Set(
-      filters.excludeCategories?.map(cat => cat.toLowerCase()) || []
+      filters.excludeCategories?.map((cat) => cat.toLowerCase()) || []
     );
 
-    // 5. Filtrar por atividades dentro dos eventos (categorias e horas)
-    if (selectedCategoriesToInclude.size > 0 || selectedCategoriesToExclude.size > 0 || isFinite(minHoursValue) || isFinite(maxHoursValue)) {
+    if (
+      selectedCategoriesToInclude.size > 0 ||
+      selectedCategoriesToExclude.size > 0 ||
+      isFinite(minHoursValue) ||
+      isFinite(maxHoursValue)
+    ) {
       filteredEvents = filteredEvents.filter((event) => {
-        // Se o evento não tem atividades, ele não pode satisfazer filtros de atividade
         if (!event.activities || event.activities.length === 0) {
           return false;
         }
 
-        // Verifica se QUALQUER atividade do evento se encaixa nos critérios
         const hasMatchingActivity = event.activities.some((activity) => {
           const activityCategoryName = activity.categoria?.nome?.toLowerCase();
 
-          // Se a atividade não tem categoria, não pode ser filtrada por categoria
           if (!activityCategoryName) {
             return false;
           }
 
-          // **Verificação de Exclusão (primeiro, para otimização)**
-          // Se a categoria da atividade está na lista de exclusão, esta atividade não conta.
           if (selectedCategoriesToExclude.has(activityCategoryName)) {
-            return false; // Esta atividade é excluída
+            return false;
           }
 
-          // **Verificação de Inclusão**
-          // Se há categorias para incluir e esta atividade não está em nenhuma delas, ela não conta.
-          if (selectedCategoriesToInclude.size > 0 && !selectedCategoriesToInclude.has(activityCategoryName)) {
-            return false; // Esta atividade não está nas categorias desejadas
+          if (
+            selectedCategoriesToInclude.size > 0 &&
+            !selectedCategoriesToInclude.has(activityCategoryName)
+          ) {
+            return false;
           }
 
-          // **Cálculo de Horas da Atividade para o currículo selecionado**
-          const calculatedHoursAC = activity.duracao *
+          const calculatedHoursAC =
+            activity.duracao *
             (activity.categoria
               ? selectedCurriculoType === "curriculoNovo"
                 ? activity.categoria.coeficienteNovo
                 : activity.categoria.coeficienteAntigo
-              : 1); // Fallback para 1 se categoria for indefinida
+              : 1);
 
-          // **Verificação de Horas**
           const meetsHoursCriteria =
             calculatedHoursAC >= minHoursValue &&
             calculatedHoursAC <= maxHoursValue;
 
-          return meetsHoursCriteria; // Se passou por todas as verificações, esta atividade é um 'match'
+          return meetsHoursCriteria;
         });
 
-        // O evento é incluído se pelo menos uma de suas atividades corresponde aos critérios
         return hasMatchingActivity;
       });
     }
 
-    return filteredEvents; // Retorna os eventos filtrados
+    return filteredEvents;
+  },
+
+  // IMPLEMENTAÇÃO DA NOVA FUNÇÃO getEventosByAtividadeId
+  getEventosByAtividadeId: (atividadeId: number): Evento[] => {
+    get().initializeStore(); // Garante que o store esteja inicializado
+    const currentEventos = get().eventos;
+    if (!Array.isArray(currentEventos)) {
+      return []; // Retorna um array vazio se eventos não for um array
+    }
+
+    // Filtra os eventos, verificando se a lista de atividades do evento
+    // contém alguma atividade com o ID fornecido.
+    return currentEventos.filter((evento) =>
+      evento.activities?.some((activity) => activity.id === atividadeId)
+    );
   },
 }));

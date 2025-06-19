@@ -1,5 +1,5 @@
 import React, { useEffect } from "react"; // Adicionado useEffect
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom"; // Adicionado useLocation
+import { useParams, Link, useNavigate } from "react-router-dom"; // Adicionado useLocation
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 // Removida a importação direta de eventData, pois o store cuidará disso
@@ -13,7 +13,6 @@ dayjs.locale("pt-br");
 
 const EventoSoloPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para obter a localização atual
   const { slug } = useParams<{ slug: string }>();
 
   // Acessar o estado e as ações do store
@@ -88,7 +87,7 @@ const EventoSoloPage: React.FC = () => {
               className="btn btn-custom-navy-white mt-3"
             >
               <span className="d-none d-md-block">
-                Voltar para a lista de Eventos
+                Voltar
               </span>
               <span className="d-block d-md-none">
                 <FontAwesomeIcon icon={faArrowLeft} />
@@ -129,7 +128,7 @@ const EventoSoloPage: React.FC = () => {
 
           {/* Renderiza o novo componente ListaAtividadesEvento se houver atividades */}
           {event.activities && event.activities.length > 0 && (
-            <ListaAtividades activities={event.activities} />
+            <ListaAtividades activities={event.activities} showRegisterButton={true} />
           )}
         </div>
       </div>

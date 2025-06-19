@@ -185,6 +185,11 @@ const PreRegistroPage: React.FC = () => {
             letivo.
           </li>
           <li>
+            • Voce pode preencher solicitação de registro (SRAC) na nossa plataforma <Link to="/dashboard/pre-registro" className="comece-agora-link">
+            Preencher formulário
+          </Link>
+          </li>
+          <li>
             • A Coordenação de Curso avisará sobre o resultado da análise.
           </li>
         </ul>
