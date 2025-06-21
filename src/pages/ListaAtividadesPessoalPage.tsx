@@ -14,7 +14,7 @@ interface CategorizedActivityData {
   activities: Atividade[];
   totalHours: number;
   maxHours: number; // Max hours for the category based on curriculum
-  hasPendingActivities: boolean; // NOVO: Indicador de atividades sem comprovante
+  hasPendingActivities: boolean; // Indicador de atividades sem comprovante
 }
 
 const ListaAtividadesPessoalPage = () => {
@@ -29,9 +29,7 @@ const ListaAtividadesPessoalPage = () => {
   const allAtividadesConcluidasFromStore = useAtividadesConcluidasStore(
     (state) => state.atividadesConcluidas
   );
-/*   const getAtividadeConcluida = useAtividadesConcluidasStore(
-    (state) => state.getAtividadeConcluida
-  ); // Adicionado para facilitar a verificação de pendência */
+
   const removeAtividadeConcluidaFromStore = useAtividadesConcluidasStore(
     (state) => state.removeAtividadeConcluida
   );
@@ -96,7 +94,7 @@ const ListaAtividadesPessoalPage = () => {
         // Se não houver eventos associados, remove do atividadeStore
         removeAtividadeFromStore(atividadeId);
         console.log(
-          `Atividade (ID: ${atividadeId}) removida do atividadeStore porque não está associada a nenhum evento.`
+          `Atividade (ID: ${atividadeId}) NÃO removida do atividadeStore porque não está associada a nenhum evento.`
         );
       } else {
         console.log(
@@ -151,12 +149,16 @@ const ListaAtividadesPessoalPage = () => {
           };
         }
 
-        // Verifica se a atividade já foi adicionada para evitar duplicatas em caso de múltiplas conclusões da mesma atividade
-        const existingActivity = activitiesByCategory[categoryName].activities.find((a) => a.id === atividade.id);
-        if (!existingActivity) {
-            activitiesByCategory[categoryName].activities.push(atividade);
+        // Adiciona a atividade à lista se ainda não estiver presente nesta categoria.
+        // É importante que 'activities' contenha as atividades únicas que contribuíram para a categoria.
+        const existingActivityInList = activitiesByCategory[
+          categoryName
+        ].activities.find((a) => a.id === atividade.id);
+        if (!existingActivityInList) {
+          activitiesByCategory[categoryName].activities.push(atividade);
         }
-        
+
+        // Atualiza o total de horas da categoria
         activitiesByCategory[categoryName].totalHours += horasAtividade;
 
         // Verifica se a atividade atual (do loop acConcluida) é "pendente"
@@ -301,32 +303,24 @@ const ListaAtividadesPessoalPage = () => {
                     aria-expanded={isExpanded}
                     aria-controls={accordionId}
                   >
-                    <div className="d-flex flex-column align-items-start">
+                    {/* Header do Acordeão: Apenas nome da categoria e badge de horas */}
+                    <div className="d-flex align-items-center">
                       <h3
-                        className="mb-1 text-dark"
+                        className="mb-0 me-2 text-dark"
                         style={{ fontWeight: "bold" }}
                       >
                         {categoryName}
-                        {/* NOVO: Indicador de atividade pendente na categoria */}
-                        {categoryData.hasPendingActivities && (
-                          <span className="badge bg-warning text-dark ms-2">
-                            Pendente
-                          </span>
-                        )}
                       </h3>
-                      <small className="text-muted">
-                        {categoryData.activities.length} Atividade(s) | Horas
-                        Registradas:{" "}
-                        <span className="badge bg-primary">
-                          {categoryData.totalHours.toFixed(1)}h
-                        </span>{" "}
-                        | Limite da Categoria:{" "}
-                        <span className="badge bg-secondary">
-                          {categoryData.maxHours === Infinity
-                            ? "N/A"
-                            : `${categoryData.maxHours.toFixed(1)}h`}
+                      {/* Badge de Horas Concluídas */}
+                      <span className="badge bg-primary text-white">
+                        {categoryData.totalHours.toFixed(1)}h
+                      </span>
+                      {/* Indicador de atividade pendente (opcional, mantido aqui para feedback rápido) */}
+                      {categoryData.hasPendingActivities && (
+                        <span className="badge bg-warning text-dark ms-2">
+                          Pendente
                         </span>
-                      </small>
+                      )}
                     </div>
                   </button>
                 </h2>
@@ -339,9 +333,35 @@ const ListaAtividadesPessoalPage = () => {
                   data-bs-parent="#activitiesAccordion"
                 >
                   <div
-                    className="accordion-body"
+                    className="accordion-body bg-light"
                     style={{ maxHeight: "400px", overflowY: "auto" }}
                   >
+                    {/* Informações detalhadas da categoria dentro do corpo */}
+                    <div className="mb-3 p-3 bg-white rounded shadow-sm">
+                      <p className="mb-1">
+                        Atividades incluídas:{" "}
+                        <span className="badge bg-info">
+                          {" "}
+                          {/* Usando bg-info para essa badge */}
+                          {categoryData.activities.length}
+                        </span>
+                      </p>
+                      <p className="mb-1">
+                        Horas Registradas:{" "}
+                        <span className="badge bg-primary">
+                          {categoryData.totalHours.toFixed(1)}h
+                        </span>
+                      </p>
+                      <p className="mb-0">
+                        Limite de horas da Categoria:{" "}
+                        <span className="badge bg-secondary">
+                          {categoryData.maxHours === Infinity
+                            ? "N/A"
+                            : `${categoryData.maxHours.toFixed(1)}h`}
+                        </span>
+                      </p>
+                    </div>
+
                     <ListaAtividades
                       activities={categoryData.activities}
                       showEdit={true}

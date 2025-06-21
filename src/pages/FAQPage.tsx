@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
-// dayjs import not strictly needed for this page unless you add dynamic date content
-// import dayjs from 'dayjs';
-// import 'dayjs/locale/pt-br';
-// dayjs.locale('pt-br');
+// Removendo imports do Font Awesome, pois o botão do acordeão do Bootstrap já tem uma seta.
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
 const FAQPage = () => {
   return (
@@ -22,10 +21,10 @@ const FAQPage = () => {
 
             <div className="accordion accordion-flush" id="faqAccordionGeral">
               {/* Pergunta 1 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingOne">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI: bg-light text-dark para o botão do header
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseOne"
@@ -41,17 +40,17 @@ const FAQPage = () => {
                   aria-labelledby="headingOne"
                   data-bs-parent="#faqAccordionGeral"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                   </div>
                 </div>
               </div>
 
               {/* Pergunta 2 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingTwo">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseTwo"
@@ -67,17 +66,17 @@ const FAQPage = () => {
                   aria-labelledby="headingTwo"
                   data-bs-parent="#faqAccordionGeral"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin interdum justo eget justo fermentum, a finibus eros tincidunt. Fusce ut libero at magna finibus semper. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed vel justo a elit fermentum tristique.
                   </div>
                 </div>
               </div>
 
               {/* Pergunta 3 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingThree">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseThree"
@@ -93,17 +92,17 @@ const FAQPage = () => {
                   aria-labelledby="headingThree"
                   data-bs-parent="#faqAccordionGeral"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ac velit vel quam fringilla fermentum. Nam bibendum turpis nec mi finibus, in euismod quam eleifend. Praesent eget mauris quis libero accumsan facilisis. Nullam eu sem eu felis laoreet eleifend.
                   </div>
                 </div>
               </div>
 
               {/* Pergunta 4 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingFour">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseFour"
@@ -119,7 +118,7 @@ const FAQPage = () => {
                   aria-labelledby="headingFour"
                   data-bs-parent="#faqAccordionGeral"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sed justo ac odio mollis efficitur. In hac habitasse platea dictumst. Quisque dapibus dolor vel nunc finibus, a lacinia purus hendrerit. Etiam id felis eget sapien euismod efficitur.
                     <br/><br/>
                     Você pode consultar nossa <Link to="/atividades" className="text-info text-decoration-underline">página sobre Atividades Complementares</Link> para mais informações e links para os documentos oficiais.
@@ -134,10 +133,10 @@ const FAQPage = () => {
 
             <div className="accordion accordion-flush" id="faqAccordionPlataforma">
               {/* Pergunta 5 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingFive">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseFive"
@@ -153,7 +152,7 @@ const FAQPage = () => {
                   aria-labelledby="headingFive"
                   data-bs-parent="#faqAccordionPlataforma"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sit amet libero ut velit accumsan volutpat. Duis efficitur, dolor nec eleifend varius, velit neque gravida erat, id feugiat justo magna vel justo. Nam eu justo vitae libero dictum cursus.
                     <br/><br/>
                     Acesse seu <Link to="/dashboard" className="text-info text-decoration-underline">Dashboard</Link> para começar a registrar suas atividades.
@@ -162,10 +161,10 @@ const FAQPage = () => {
               </div>
 
               {/* Pergunta 6 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingSix">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseSix"
@@ -181,17 +180,17 @@ const FAQPage = () => {
                   aria-labelledby="headingSix"
                   data-bs-parent="#faqAccordionPlataforma"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam erat volutpat. Proin efficitur enim sit amet urna tincidunt, vel finibus libero interdum. Sed vel sapien vel dolor fermentum venenatis. Nunc eu purus in justo accumsan dapibus.
                   </div>
                 </div>
               </div>
 
               {/* Pergunta 7 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingSeven">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseSeven"
@@ -207,17 +206,17 @@ const FAQPage = () => {
                   aria-labelledby="headingSeven"
                   data-bs-parent="#faqAccordionPlataforma"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor, elit eu tincidunt accumsan, justo justo ullamcorper velit, nec lacinia justo ipsum vel ipsum. Sed id nulla ut libero tincidunt bibendum.
                   </div>
                 </div>
               </div>
 
               {/* Pergunta 8 */}
-              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25">
+              <div className="accordion-item bg-dark text-white border-bottom border-light border-opacity-25 mb-3">
                 <h3 className="accordion-header" id="headingEight">
                   <button
-                    className="accordion-button collapsed bg-dark text-white"
+                    className="accordion-button collapsed bg-light text-dark" // ALTERADO AQUI
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseEight"
@@ -233,7 +232,7 @@ const FAQPage = () => {
                   aria-labelledby="headingEight"
                   data-bs-parent="#faqAccordionPlataforma"
                 >
-                  <div className="accordion-body text-light">
+                  <div className="accordion-body bg-white text-dark">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vel turpis in nunc tincidunt fermentum. Integer vel justo id felis malesuada malesuada. Quisque nec nisl ac libero tincidunt eleifend.
                   </div>
                 </div>
