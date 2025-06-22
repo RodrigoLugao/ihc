@@ -135,7 +135,7 @@ const PreRegistroPage: React.FC = () => {
               className="btn btn-outline-success btn-lg"
               onClick={handleFileUploadClick}
             >
-              <i className="bi bi-upload me-2"></i> Subir Certificado
+              <i className="bi bi-upload me-2"></i> Enviar Certificado
             </button>
           </div>
         </div>

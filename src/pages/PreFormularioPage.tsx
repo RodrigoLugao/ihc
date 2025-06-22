@@ -301,7 +301,7 @@ const PreFormularioPage = () => {
               className="btn btn-outline-success btn-lg"
               onClick={handleFileUploadClick}
             >
-              <FontAwesomeIcon icon={faUpload} className="me-2" /> Subir Certificado(s)
+              <FontAwesomeIcon icon={faUpload} className="me-2" /> Enviar Certificado(s)
             </button>
           </div>
         </div>
