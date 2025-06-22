@@ -25,7 +25,7 @@ const DashboardPage: React.FC = () => {
         nome: "Visitante",
         email: "visitante@example.com",
         senha: "",
-        curriculoNovo: true,
+        curriculo: "31.02.003",
         matricula: "VISITANTE999",
         telefone: "",
       };

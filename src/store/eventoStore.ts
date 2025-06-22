@@ -195,7 +195,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
     ];
 
     const selectedCurriculoType: CurriculoTipo =
-      filters.curriculoType || "curriculoNovo";
+      filters.curriculoType || "31.02.003";
 
     if (filters.searchTerm) {
       const lowerCaseSearchTerm = filters.searchTerm.toLowerCase();
@@ -286,10 +286,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
           const calculatedHoursAC =
             activity.duracao *
-            (activity.categoria
-              ? selectedCurriculoType === "curriculoNovo"
-                ? activity.categoria.coeficienteNovo
-                : activity.categoria.coeficienteAntigo
+            (activity.categoria ?
+              activity.categoria.coeficienteNovo
               : 1);
 
           const meetsHoursCriteria =

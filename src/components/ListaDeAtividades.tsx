@@ -163,25 +163,11 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({
 
               <p className="mb-1 text-secondary">
                 <small>
-                  <b>Horas AC (Currículo Novo):</b>{" "}
+                  <b>Horas AC:</b>{" "}
                   <span className="badge bg-success">
                     {(
                       activity.duracao *
                       (activity.categoria ? activity.categoria.coeficienteNovo : 1)
-                    ).toFixed(1)}{" "}
-                    h
-                  </span>
-                </small>
-              </p>
-              <p className="mb-3 text-secondary">
-                <small>
-                  <b>Horas AC (Currículo Antigo):</b>{" "}
-                  <span className="badge bg-info">
-                    {(
-                      activity.duracao *
-                      (activity.categoria
-                        ? activity.categoria.coeficienteAntigo
-                        : 1)
                     ).toFixed(1)}{" "}
                     h
                   </span>

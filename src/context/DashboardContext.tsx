@@ -7,10 +7,10 @@ import type { Usuario } from '../interfaces/Usuario';
 import type { AtividadeConcluida } from '../interfaces/AtivdadeConcluida';
 
 // Tipos
-type CurriculoChave = "curriculoAntigo" | "curriculoNovo";
+type CurriculoChave = "C_002" | "C_003";
 const TOTAL_HORAS_AC_NECESSARIAS: Record<CurriculoChave, number> = {
-  curriculoAntigo: 200,
-  curriculoNovo: 148,
+  C_002: 162,
+  C_003: 148,
 };
 
 interface DashboardContextType {
@@ -89,8 +89,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
           const atividade = allAtividades.find((atv) => atv.id === acConcluida.idAtividade);
           if (atividade && atividade.categoria) {
             const categoriaNome = atividade.categoria.nome;
-            const horas = atividade.duracao *
-              (usuario.curriculoNovo ? atividade.categoria.coeficienteNovo : atividade.categoria.coeficienteAntigo);
+            const horas = atividade.duracao * atividade.categoria.coeficienteNovo;
 
             calculatedHorasAC += horas;
             horasPorCategoria[categoriaNome] = (horasPorCategoria[categoriaNome] || 0) + horas;
@@ -100,7 +99,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
 
         setHorasACCalculadasState(calculatedHorasAC);
 
-        const tipoCurriculoParaCalculo: CurriculoChave = usuario.curriculoNovo ? "curriculoNovo" : "curriculoAntigo";
+        const tipoCurriculoParaCalculo: CurriculoChave = usuario.curriculo == "31.02.003" ? "C_003" : "C_002";
         const calculatedTotalHorasNecessarias = TOTAL_HORAS_AC_NECESSARIAS[tipoCurriculoParaCalculo];
         setTotalHorasNecessariasState(calculatedTotalHorasNecessarias);
 

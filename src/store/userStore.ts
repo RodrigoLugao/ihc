@@ -45,7 +45,7 @@ export const useUserStore = create<UserState>((set, _) => ({ // <-- Adicione 'ge
       if (state.user) {
         const updatedUser: Usuario = {
           ...state.user,
-          curriculoNovo: !state.user.curriculoNovo, // Alterna o valor booleano
+          curriculo: state.user.curriculo == "31.02.003" ? "31.02.002" : "31.02.003", // Alterna os valores de CurriculoTipo
         };
         // Atualiza também no localStorage para persistência
         localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
