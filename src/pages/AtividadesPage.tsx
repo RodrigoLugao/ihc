@@ -54,7 +54,12 @@ const AtividadesPage = () => {
           <section className="mb-5">
             <h2 className="mb-3" style={{ fontWeight: "bold" }}>Objetivo e Requisitos</h2>
             <p className="text-light" style={{ fontSize: "1.1em" }}>
-              Para efeito de integralização curricular do <strong className="text-info">currículo 31.02.003</strong> do curso de Ciência da Computação, o aluno deverá cumprir um mínimo de <strong className="text-warning">148 horas</strong> de Atividades Complementares ao longo do curso, seguindo as normas específicas estabelecidas. É importante ressaltar que esta carga horária <strong className="text-warning">não poderá ser obtida através de uma única Atividade Complementar</strong>.
+              Atualmente, o curso de Ciência da Computação possuí dois currículos ativos:
+              <ul>
+                <li><strong className="text-info">31.02.002</strong>, protocolado em 2017</li>
+                <li><strong className="text-info">31.02.003</strong>, protocolado em 2023</li>
+              </ul>
+              Para efeito de integralização curricular do curso de Ciência da Computação, o aluno deverá cumprir um mínimo de <strong className="text-warning">148 horas</strong> de Atividades Complementares no <strong className="text-info">currículo 31.02.003</strong> ou <strong className="text-warning">162 horas</strong> no <strong className="text-info">currículo 31.02.002</strong>, seguindo as normas específicas estabelecidas. É importante ressaltar que <strong className="text-warning">existe um limite de contribuição de horas para cada Atividade Complementar</strong>. Não é possível completar todas as horas com uma única atividade.
             </p>
             <p className="text-light" style={{ fontSize: "1.1em" }}>
               A carga horária de <strong className="text-info">Disciplinas Eletivas</strong> cursadas na UFF pode ser utilizada para compor a carga horária de Atividades Complementares, desde que aprovada pela Comissão de Atividades Complementares. Contudo, a carga horária proveniente de disciplinas eletivas <strong className="text-warning">não poderá ser superior à metade da carga horária total</strong> exigida para as ACs.
@@ -102,65 +107,53 @@ const AtividadesPage = () => {
                 <thead>
                   <tr>
                     <th scope="col" className="text-warning">TIPO DE ATIVIDADE</th>
-                    <th scope="col" className="text-info">CURRÍCULO ANTIGO (31.02.001)<br/>HORAS EQUIVALENTES / MÁXIMO DE HORAS EQUIV.</th>
-                    <th scope="col" className="text-info">CURRÍCULO NOVO (31.02.002)<br/>HORAS EQUIVALENTES / MÁXIMO DE HORAS EQUIV.</th>
+                    <th scope="col" className="text-info">HORAS EQUIVALENTES / MÁXIMO DE HORAS EQUIV.</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>Disciplina Eletiva presencial ou a distância - UFF</td>
                     <td>34 horas cursadas = 17 horas/AC / 17 horas/AC</td>
-                    <td>34 horas cursadas = 17 horas/AC / 34 horas/AC</td>
                   </tr>
                   <tr>
                     <td>Iniciação a Docência</td>
                     <td>1 ano = 34 horas/AC / 34 horas/AC</td>
-                    <td>1 ano = 68 horas/AC / 68 horas/AC</td>
                   </tr>
                   <tr>
                     <td>Participação em seminários, congressos e eventos</td>
                     <td>3 horas cursadas = 1 hora/AC / 17 horas</td>
-                    <td>3 horas cursadas = 2 horas/AC / 34 horas</td>
                   </tr>
                   <tr>
                     <td>Publicação de trabalho completo em periódico / livro</td>
                     <td>1 trabalho = 34 horas/AC / 34 horas/AC</td>
-                    <td>1 trabalho = 68 horas/AC / 68 horas/AC</td>
                   </tr>
                   <tr>
                     <td>Participação em cursos e treinamentos na área de Computação</td>
                     <td>60 horas cursadas = 17 horas/AC / 17 horas</td>
-                    <td>60 horas cursadas = 34 horas/AC / 34 horas</td>
                   </tr>
                   <tr>
                     <td>Participação em Competição de Base Tecnológica e Caráter Educacional / Maratona</td>
                     <td>1 hora = 0,5 hora/AC / 34 horas</td>
-                    <td>1 hora = 1 hora/AC / 68 horas</td>
                   </tr>
                   <tr>
                     <td>Hackaton</td>
                     <td>4 horas = 1 hora/AC / 17 horas</td>
-                    <td>4 horas = 2 horas/AC / 34 horas</td>
                   </tr>
                   <tr>
                     <td>Organização de eventos na área de Computação ou afins</td>
                     <td>1 evento organizado = 3 horas/AC / 6 horas</td>
-                    <td>1 evento organizado = 4 horas/AC / 12 horas</td>
                   </tr>
                   <tr>
                     <td>Estágio Não Obrigatório</td>
                     <td>60 horas = 1 hora/AC / 34 horas</td>
-                    <td>60 horas = 2 horas/AC / 68 horas</td>
                   </tr>
                   <tr>
                     <td>Cursos de Línguas Estrangeiras</td>
                     <td>34 horas cursadas = 34 horas/AC / 34 horas</td>
-                    <td>34 horas cursadas = 68 horas/AC / 68 horas</td>
                   </tr>
                   <tr>
                     <td>Membro de Entidade Estudantil (DA, CA, Atlética)</td>
                     <td>1 ano = 34 horas/AC / 34 horas/AC</td>
-                    <td>1 ano = 68 horas/AC / 68 horas/AC</td>
                   </tr>
                 </tbody>
               </table>
