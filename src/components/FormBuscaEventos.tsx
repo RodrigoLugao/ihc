@@ -94,8 +94,6 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
     }
   }, [initialFormData, reset]);
 
-  const hideCurriculoTypeSelect = initialFormData !== null && initialFormData.curriculoType !== undefined;
-
   const handleAddIncludeCategory = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryName = event.target.value; // Já virá em minúsculas se a opção foi gerada com value={category.toLowerCase()}
     if (categoryName && !selectedIncludeCategories.includes(categoryName)) {
