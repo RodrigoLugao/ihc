@@ -170,8 +170,8 @@ const PreRegistroPage: React.FC = () => {
             <strong>obrigatórios</strong>.
           </li>
           <li>
-            • Para o currículo 31.02.003, são necessárias no mínimo{" "}
-            <strong>148h</strong>.
+            • Para o currículo {" "} <strong>31.02.003</strong>, são necessárias no mínimo{" "}
+            <strong>148h</strong>. Para o {" "} <strong>31.02.002</strong>, são necessárias no mínimo {" "} <strong>162h</strong>
           </li>
           <li>• A carga horária não pode ser obtida por uma única AC.</li>
           <li>
