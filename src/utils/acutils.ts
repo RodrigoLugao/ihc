@@ -9,7 +9,7 @@ import type { AtividadeConcluida } from "../interfaces/AtivdadeConcluida";
 
 dayjs.extend(duration);
 
-export type CurriculoTipo = "curriculoAntigo" | "curriculoNovo";
+export type CurriculoTipo = "31.02.002" | "31.02.003";
 
 /**
  * Retorna todas as atividades concluídas por um usuário específico.
@@ -26,12 +26,12 @@ export const getAtividadesConcluidasByUsuario = (
  * Calcula o total de horas de Atividades Complementares para um usuário específico,
  * com base nas atividades que ele concluiu e no tipo de currículo.
  * @param idUsuario O ID do usuário.
- * @param curriculo O tipo de currículo ('curriculoAntigo' ou 'curriculoNovo').
  * @returns O total de horas AC para o usuário.
  */
+
+// Como a contribuição de horas é a mesma entre currículos é a mesma
 export const calcularTotalHorasACByUsuario = (
-  idUsuario: number,
-  curriculoNovo: boolean
+  idUsuario: number
 ): number => {
   const atividadesConcluidasDoUsuario =
     getAtividadesConcluidasByUsuario(idUsuario);
@@ -43,11 +43,10 @@ export const calcularTotalHorasACByUsuario = (
     );
 
     if (atividadeDetalhe) {
-      const coeficiente = atividadeDetalhe.categoria
-        ? curriculoNovo
-          ? atividadeDetalhe.categoria.coeficienteNovo
-          : atividadeDetalhe.categoria.coeficienteAntigo
-        : 1;
+      const coeficiente = atividadeDetalhe.categoria ? 
+                            atividadeDetalhe.categoria.coeficienteNovo
+                            : 1;
+
       totalHorasAC += atividadeDetalhe.duracao * coeficiente;
     } else {
       console.warn(

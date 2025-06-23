@@ -147,9 +147,7 @@ const ListaAtividadesPessoalPage = () => {
 
       if (atividade && atividade.categoria) {
         const categoryName = atividade.categoria.nome;
-        const coeficiente = usuario.curriculoNovo
-          ? atividade.categoria.coeficienteNovo
-          : atividade.categoria.coeficienteAntigo;
+        const coeficiente = atividade.categoria.coeficienteNovo
         const horasAtividade = atividade.duracao * coeficiente;
 
         // Inicializa a categoria se ainda não existir
@@ -157,9 +155,7 @@ const ListaAtividadesPessoalPage = () => {
           activitiesByCategory[categoryName] = {
             activities: [],
             totalHours: 0,
-            maxHours: usuario.curriculoNovo
-              ? atividade.categoria.maximoNovo || Infinity
-              : atividade.categoria.maximoAntigo || Infinity,
+            maxHours: atividade.categoria.maximoNovo || Infinity,
             hasPendingActivities: false, // Inicializa como false
           };
         }

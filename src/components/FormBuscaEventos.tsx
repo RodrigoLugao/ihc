@@ -63,7 +63,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
       location: '',
       minHours: '',
       maxHours: '',
-      curriculoType: 'curriculoNovo',
+      curriculoType: '31.02.003',
     }
   });
 
@@ -87,14 +87,12 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
         location: '',
         minHours: '',
         maxHours: '',
-        curriculoType: 'curriculoNovo',
+        curriculoType: '31.02.003',
       });
       setSelectedIncludeCategories([]);
       setSelectedExcludeCategories([]);
     }
   }, [initialFormData, reset]);
-
-  const hideCurriculoTypeSelect = initialFormData !== null && initialFormData.curriculoType !== undefined;
 
   const handleAddIncludeCategory = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryName = event.target.value; // Já virá em minúsculas se a opção foi gerada com value={category.toLowerCase()}
@@ -141,7 +139,7 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
       location: '',
       minHours: '',
       maxHours: '',
-      curriculoType: 'curriculoNovo',
+      curriculoType: '31.02.003',
     });
     setSelectedIncludeCategories([]);
     setSelectedExcludeCategories([]);
@@ -208,19 +206,6 @@ const FormBuscaEventos: React.FC<FormBuscaEventosProps> = ({ onSearch, onClear, 
         <div className="mb-4">
           <h4 className="mb-3" style={{ fontWeight: 'bold', color: '#ecf0f1' }}>Atividades Complementares do Evento</h4>
 
-          {!hideCurriculoTypeSelect && (
-            <div className="mb-3">
-              <label htmlFor="curriculoType" className="form-label text-light">Tipo de Currículo para AC:</label>
-              <select
-                className="form-select"
-                id="curriculoType"
-                {...register('curriculoType')}
-              >
-                <option value="curriculoNovo">Currículo Novo</option>
-                <option value="curriculoAntigo">Currículo Antigo</option>
-              </select>
-            </div>
-          )}
 
           <div className="row mb-3">
             <div className="col-md-6">

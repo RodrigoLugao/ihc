@@ -9,7 +9,6 @@ dayjs.extend(isSameOrAfter);
 
 import { eventData, type Evento } from "../interfaces/Evento";
 import type { EventSearchForm } from "../components/FormBuscaEventos";
-import type { CurriculoTipo } from "../utils/acutils";
 
 // Chave para o localStorage
 const LOCAL_STORAGE_KEY = "eventStore";
@@ -194,8 +193,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
       ...(Array.isArray(get().eventos) ? get().eventos : []),
     ];
 
-    const selectedCurriculoType: CurriculoTipo =
-      filters.curriculoType || "curriculoNovo";
 
     if (filters.searchTerm) {
       const lowerCaseSearchTerm = filters.searchTerm.toLowerCase();
@@ -286,10 +283,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
           const calculatedHoursAC =
             activity.duracao *
-            (activity.categoria
-              ? selectedCurriculoType === "curriculoNovo"
-                ? activity.categoria.coeficienteNovo
-                : activity.categoria.coeficienteAntigo
+            (activity.categoria ?
+              activity.categoria.coeficienteNovo
               : 1);
 
           const meetsHoursCriteria =

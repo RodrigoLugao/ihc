@@ -62,7 +62,7 @@ const EventosPage = () => {
             .filter((cat) => cat.length > 0)
         : [],
       curriculoType:
-        (queryParams.get("curriculoType") as CurriculoTipo) || "curriculoNovo",
+        (queryParams.get("curriculoType") as CurriculoTipo) || "31.02.003",
       excludeCategories: queryParams.get("excludeCategories")
         ? queryParams
             .get("excludeCategories")!

@@ -135,7 +135,7 @@ const PreRegistroPage: React.FC = () => {
               className="btn btn-outline-success btn-lg"
               onClick={handleFileUploadClick}
             >
-              <i className="bi bi-upload me-2"></i> Subir Certificado
+              <i className="bi bi-upload me-2"></i> Enviar Certificado
             </button>
           </div>
         </div>
@@ -170,8 +170,8 @@ const PreRegistroPage: React.FC = () => {
             <strong>obrigatórios</strong>.
           </li>
           <li>
-            • Para o currículo 31.02.003, são necessárias no mínimo{" "}
-            <strong>148h</strong>.
+            • Para o currículo {" "} <strong>31.02.003</strong>, são necessárias no mínimo{" "}
+            <strong>148h</strong>. Para o {" "} <strong>31.02.002</strong>, são necessárias no mínimo {" "} <strong>162h</strong>
           </li>
           <li>• A carga horária não pode ser obtida por uma única AC.</li>
           <li>
