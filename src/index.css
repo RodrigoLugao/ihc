@@ -37,7 +37,11 @@ body {
 }
 
 .texto-azul-escuro:hover {
-  color: rgb(56, 56, 117) !important; /* Mantenho a cor específica que você usou */
+  color: rgb(
+    56,
+    56,
+    117
+  ) !important; /* Mantenho a cor específica que você usou */
   font-size: 1.1em !important;
 }
 
@@ -54,7 +58,11 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
   background-blend-mode: overlay; /* Efeito de blend para a cor de fundo */
-  background-color: rgb(21, 26, 36); /* Cor de fundo que se mistura com a imagem */
+  background-color: rgb(
+    21,
+    26,
+    36
+  ); /* Cor de fundo que se mistura com a imagem */
   color: var(--white); /* Cor do texto dentro desta div */
 }
 
@@ -67,7 +75,11 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
   background-blend-mode: overlay; /* Efeito de blend para a cor de fundo */
-  background-color: rgb(21, 26, 36); /* Cor de fundo que se mistura com a imagem */
+  background-color: rgb(
+    21,
+    26,
+    36
+  ); /* Cor de fundo que se mistura com a imagem */
   color: var(--white); /* Cor do texto dentro desta div */
 }
 
@@ -139,7 +151,8 @@ body {
   color: var(--uff-navy);
   background-color: var(--white);
   border-color: var(--uff-navy);
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .btn.btn-custom-navy-white:hover {
@@ -164,7 +177,6 @@ body {
   opacity: 0.65;
 }
 
-
 /* ======================================= */
 /* Página de Login               */
 /* ======================================= */
@@ -172,11 +184,21 @@ body {
 .login-page-container {
   /* Reusa background-div para a imagem de fundo, ajusta o blend e cor de fundo */
   background-blend-mode: multiply;
-  background-color: rgba(21, 26, 36, 0.9); /* Escurece para destacar o card de login */
+  background-color: rgba(
+    21,
+    26,
+    36,
+    0.9
+  ); /* Escurece para destacar o card de login */
 }
 
 .login-card {
-  background-color: rgba(255, 255, 255, 0.95); /* Fundo branco semi-transparente para o card */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.95
+  ); /* Fundo branco semi-transparente para o card */
   max-width: 450px;
   width: 90%;
   padding: 30px;
@@ -211,7 +233,6 @@ body {
   color: var(--uff-info-hover) !important;
 }
 
-
 /* ======================================= */
 /* Componente Card           */
 /* ======================================= */
@@ -238,7 +259,9 @@ body {
   overflow: hidden;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  background-color: var(--bootstrap-gray-200); /* Cor de fundo para o container da imagem */
+  background-color: var(
+    --bootstrap-gray-200
+  ); /* Cor de fundo para o container da imagem */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -374,7 +397,8 @@ body {
 /* Media Queries (Responsividade) */
 /* ======================================= */
 
-@media (max-width: 768px) { /* Para tablets e celulares (md breakpoint) */
+@media (max-width: 768px) {
+  /* Para tablets e celulares (md breakpoint) */
   .background-div {
     min-height: 350px; /* Reduz a altura em telas menores */
   }
@@ -393,7 +417,8 @@ body {
   }
 }
 
-@media (max-width: 576px) { /* Para celulares menores (sm breakpoint) */
+@media (max-width: 576px) {
+  /* Para celulares menores (sm breakpoint) */
   .background-div {
     min-height: 250px; /* Reduz ainda mais a altura */
   }
@@ -407,13 +432,13 @@ body {
 @media (min-width: 768px) {
   .event-list-container {
     max-height: unset; /* Remove a altura máxima fixa em telas maiores */
-    height: 100%;       /* Ocupa 100% da altura da coluna pai */
+    height: 100%; /* Ocupa 100% da altura da coluna pai */
   }
 
   .col-md-6.image-column {
-     min-height: 400px; /* Garante uma altura mínima para a coluna da imagem em md+ */
-     /* Pode ajustar para 'auto' se a imagem sempre definir a altura */
-     /* ou para uma altura específica que se alinhe com o conteúdo da lista */
+    min-height: 400px; /* Garante uma altura mínima para a coluna da imagem em md+ */
+    /* Pode ajustar para 'auto' se a imagem sempre definir a altura */
+    /* ou para uma altura específica que se alinhe com o conteúdo da lista */
   }
 
   /* Garante que as colunas da seção de eventos usem flexbox para sincronização de altura */
@@ -429,13 +454,37 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.1); /* Linha sutil no topo */
 }
 
-
 /* Overrides para as cores ativas/hover, se as classes text-info/text-light não forem ideais */
 .dashboard-nav-item-custom.text-light:hover {
-    color: var(--white) !important; /* Mais branco no hover */
+  color: var(--white) !important; /* Mais branco no hover */
 }
 
 .dashboard-nav-item-custom.text-info.active {
-    color: var(--uff-info) !important; /* Usa sua variável CSS para o ativo, garantindo prioridade */
+  color: var(
+    --uff-info
+  ) !important; /* Usa sua variável CSS para o ativo, garantindo prioridade */
 }
 
+@keyframes scan-animation {
+  0% {
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  }
+  50% {
+    border-color: #00b300;
+    box-shadow: 0 0 25px rgba(0, 179, 0, 0.7);
+  }
+  100% {
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  }
+}
+
+@keyframes scan-line-animation {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(200%); /* Adjust based on overlay height */
+  }
+}
