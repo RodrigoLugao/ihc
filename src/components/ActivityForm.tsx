@@ -6,6 +6,16 @@ import type { CategoriaAtividade } from "../interfaces/Categoria";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+// Função auxiliar para obter a data de hoje no formato YYYY-MM-DD
+// ESSENCIAL para input type="date"
+const getTodayDate = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Mês é 0-indexado, então adicionamos 1
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`; // Formato corrigido para YYYY-MM-DD
+};
+
 // Definir as interfaces de input fora do componente para reutilização
 export interface ActivityFormInputs {
   nome: string;
@@ -15,24 +25,24 @@ export interface ActivityFormInputs {
   responsavel: string;
   duracao: number;
   categoriaNome: string;
-  certificado?: FileList | null; // Alterado para FileList | null
+  certificado?: FileList | null;
 }
 
 // Props que o componente ActivityForm vai receber
 interface ActivityFormProps {
-  onSubmit: SubmitHandler<ActivityFormInputs>; // Função de submissão do formulário
-  onClear: () => void; // Função para limpar o formulário
+  onSubmit: SubmitHandler<ActivityFormInputs>;
+  onClear: () => void;
   precisaCertificado?: boolean;
-  prefilledData?: ActivityFormInputs; // NOVA PROP: dados para pré-preencher
-  isEditing?: boolean; // NOVO: Flag para indicar modo de edição
+  prefilledData?: ActivityFormInputs;
+  isEditing?: boolean;
 }
 
 const ActivityForm: React.FC<ActivityFormProps> = ({
   onSubmit,
   onClear,
   precisaCertificado = true,
-  prefilledData, // Recebendo a nova prop
-  isEditing = false, // Default false
+  prefilledData,
+  isEditing = false,
 }) => {
   const {
     register,
@@ -41,28 +51,35 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     reset,
     watch,
   } = useForm<ActivityFormInputs>({
-    defaultValues: prefilledData, // Inicializa o formulário com os dados pré-preenchidos
+    // Define os valores padrão iniciais do formulário
+    defaultValues: prefilledData
+      ? prefilledData
+      : {
+          nome: "",
+          descricao: "",
+          inicio: getTodayDate(), // Padrão: data de hoje (formato YYYY-MM-DD)
+          fim: "", // Adicionado campo 'fim'
+          responsavel: "",
+          duracao: 1, // Padrão: 1
+          categoriaNome: "", // Adicionado campo 'categoriaNome'
+          certificado: null, // Adicionado campo 'certificado'
+        },
   });
 
-  // Acessar o store de categorias
   const { getCategorias, getCategoriaByName } = useCategoriaStore();
-  const categoriasDisponiveis = getCategorias(); // Pega as categorias do store
+  const categoriasDisponiveis = getCategorias();
 
-  // Monitorar a seleção da categoria em tempo real
   const selectedCategoryName = watch("categoriaNome");
-  const currentCertificadoWatch = watch("certificado"); // Observar o campo de certificado
+  const currentCertificadoWatch = watch("certificado");
 
-  // Estado para armazenar o objeto CategoriaAtividade completo
   const [selectedCategory, setSelectedCategory] = useState<
     CategoriaAtividade | undefined
   >(undefined);
 
-  // Estado para controlar a expansão da seção de certificado (seção opcional)
   const [showCertificadoUpload, setShowCertificadoUpload] = useState(
-    prefilledData?.certificado instanceof FileList && prefilledData.certificado.length > 0 || false
-  ); // Inicia expandido se já houver certificado pré-preenchido
+    (prefilledData?.certificado instanceof FileList && prefilledData.certificado.length > 0) || false
+  );
 
-  // useEffect para atualizar a categoria selecionada quando selectedCategoryName mudar
   useEffect(() => {
     if (selectedCategoryName) {
       const foundCategory = getCategoriaByName(selectedCategoryName);
@@ -76,23 +93,22 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   useEffect(() => {
     if (prefilledData) {
       reset(prefilledData);
-      // Se há dados pré-preenchidos e um certificado, mostre a seção de certificado.
       if (prefilledData.certificado instanceof FileList && prefilledData.certificado.length > 0) {
         setShowCertificadoUpload(true);
       }
     } else if (!isEditing) {
-      // Só reseta para vazio se não for edição e não houver prefilledData
+      // Reseta para os valores padrão customizados (para um novo formulário)
       reset({
         nome: "",
         descricao: "",
-        inicio: "",
-        fim: "",
+        inicio: getTodayDate(), // Define para hoje ao resetar
+        fim: "", // Incluído
         responsavel: "",
-        duracao: 0,
-        categoriaNome: "",
-        certificado: null,
+        duracao: 1, // Define para 1 ao resetar
+        categoriaNome: "", // Incluído
+        certificado: null, // Incluído
       });
-      setShowCertificadoUpload(false); // Esconde a seção de certificado ao limpar
+      setShowCertificadoUpload(false);
     }
   }, [prefilledData, reset, isEditing]);
 
@@ -101,19 +117,18 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     reset({
       nome: "",
       descricao: "",
-      inicio: "",
-      fim: "",
+      inicio: getTodayDate(), // Define para hoje ao limpar
+      fim: "", // Incluído
       responsavel: "",
-      duracao: 0,
-      categoriaNome: "",
-      certificado: null,
+      duracao: 1, // Define para 1 ao limpar
+      categoriaNome: "", // Incluído
+      certificado: null, // Incluído
     });
     setSelectedCategory(undefined);
-    setShowCertificadoUpload(false); // Esconde a seção de certificado ao limpar
+    setShowCertificadoUpload(false);
     onClear();
   };
 
-  // Lógica para determinar se há um certificado e qual o seu nome
   const prefilledCertificado =
     prefilledData?.certificado instanceof FileList &&
     prefilledData.certificado.length > 0
@@ -335,7 +350,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                   }`}
                   id="certificado"
                   {...register("certificado")}
-                  accept=".pdf, .jpg, .jpeg, .png" // Tipos de arquivo aceitos
+                  accept=".pdf, .jpg, .jpeg, .png"
                 />
                 {errors.certificado && (
                   <div className="invalid-feedback">

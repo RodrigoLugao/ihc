@@ -50,6 +50,10 @@ const ListaAtividadesPessoalPage = () => {
     atividadeNome: string; // Adicionado para exibir no modal
   } | null>(null);
 
+  // NOVO ESTADO para o modal de sucesso
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
   const handleGoBack = () => {
     navigate(-1);
   };
@@ -71,16 +75,23 @@ const ListaAtividadesPessoalPage = () => {
     [allAtividadesFromStore]
   );
 
-  // Função para fechar o modal
+  // Função para fechar o modal de confirmação
   const handleCloseConfirmModal = useCallback(() => {
     setShowConfirmModal(false);
     setActivityToRemove(null); // Limpa os dados da atividade a ser removida
   }, []);
 
+  // NOVO: Função para fechar o modal de sucesso
+  const handleCloseSuccessModal = useCallback(() => {
+    setShowSuccessModal(false);
+    setSuccessMessage("");
+  }, []);
+
   // Lógica principal de remoção após a confirmação
   const handleRemoveActivityConfirmed = useCallback(() => {
     if (activityToRemove && usuario) {
-      const { atividadeId, usuarioId } = activityToRemove;
+      const { atividadeId, usuarioId, atividadeNome } = activityToRemove;
+      let message = `A atividade "${atividadeNome}" foi removida do seu registro pessoal.`;
 
       // 1. Remover do atividadesConcluidasStore SEMPRE
       removeAtividadeConcluidaFromStore(atividadeId, usuarioId);
@@ -93,16 +104,20 @@ const ListaAtividadesPessoalPage = () => {
       if (eventosAssociados.length === 0) {
         // Se não houver eventos associados, remove do atividadeStore
         removeAtividadeFromStore(atividadeId);
+        message += " Ela foi completamente removida da base de dados de atividades.";
         console.log(
-          `Atividade (ID: ${atividadeId}) NÃO removida do atividadeStore porque não está associada a nenhum evento.`
+          `Atividade (ID: ${atividadeId}) removida do atividadeStore porque não está associada a nenhum evento.`
         );
       } else {
+        message += ` Ela permanece na base de dados geral porque está associada a ${eventosAssociados.length} evento(s) no sistema.`;
         console.log(
           `Atividade (ID: ${atividadeId}) NÃO removida do atividadeStore porque está associada a ${eventosAssociados.length} evento(s).`
         );
       }
+      setSuccessMessage(message);
+      setShowSuccessModal(true); // Abre o modal de sucesso
     }
-    handleCloseConfirmModal(); // Fecha o modal após a tentativa de remoção
+    handleCloseConfirmModal(); // Fecha o modal de confirmação
   }, [
     activityToRemove,
     usuario,
@@ -262,6 +277,50 @@ const ListaAtividadesPessoalPage = () => {
     );
   };
 
+  // NOVO: Componente Modal de Sucesso (alterado para "Remoção Concluída" e text-dark)
+  const SuccessModal: React.FC<{
+    show: boolean;
+    onClose: () => void;
+    message: string;
+  }> = ({ show, onClose, message }) => {
+    if (!show) return null;
+
+    return (
+      <div
+        className="modal fade show"
+        style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+        tabIndex={-1}
+        role="dialog"
+      >
+        <div className="modal-dialog modal-dialog-centered" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title text-dark">Remoção Concluída</h5> {/* Título alterado e cor do texto */}
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <p className="text-dark">{message}</p> {/* Cor do texto no corpo também alterada */}
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={onClose}
+              >
+                Ok
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -381,6 +440,13 @@ const ListaAtividadesPessoalPage = () => {
         onClose={handleCloseConfirmModal}
         onConfirm={handleRemoveActivityConfirmed}
         atividadeNome={activityToRemove?.atividadeNome} // Passa o nome para o modal
+      />
+
+      {/* Renderização do Modal de Sucesso */}
+      <SuccessModal
+        show={showSuccessModal}
+        onClose={handleCloseSuccessModal}
+        message={successMessage}
       />
     </>
   );
