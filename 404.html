@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecionando...</title>
+  <script type="text/javascript">
+    // Guarda o caminho completo da URL atual no sessionStorage
+    sessionStorage.redirect = location.href;
+
+    // Redireciona para a raiz do seu aplicativo hospedado no GitHub Pages
+    // O valor '/ihc/' DEVE corresponder ao seu 'homepage' no package.json
+    location.replace(location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') + '/ihc/');
+  </script>
+</head>
+<body>
+  Você está sendo redirecionado para a página inicial...
+</body>
+</html>
