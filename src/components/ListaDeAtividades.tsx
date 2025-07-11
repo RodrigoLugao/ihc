@@ -1,18 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react"; // Importe useEffect
 import dayjs from "dayjs";
 import type { Atividade } from "../interfaces/Atividade";
 import { useNavigate } from "react-router-dom";
 import type { Usuario } from "../interfaces/Usuario";
 import { useAtividadesConcluidasStore } from "../store/atividadesConcluidasStore";
 
+// Se você não tiver o Bootstrap JS inicializado globalmente,
+// pode precisar de algo assim para inicializar tooltips:
+declare const bootstrap: any; // Declaração para evitar erro de tipo se 'bootstrap' não for reconhecido
+
 interface ListaAtividadesProps {
   activities: Atividade[];
   showEdit?: boolean;
   usuario?: Usuario | null;
   onRemoveActivity?: (atividadeId: number, usuarioId: number) => void;
-  // Novo prop: controla a exibição do botão "Registre no Organizador de Atividades"
   showRegisterButton?: boolean;
-  // Novo prop: controla a exibição do status "Pendente (nenhum comprovante anexado)"
   showPendingStatus?: boolean;
 }
 
@@ -21,14 +23,24 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({
   showEdit = false,
   usuario = null,
   onRemoveActivity,
-  showRegisterButton = false, // Padrão como false
-  showPendingStatus = true, // Padrão como true
+  showRegisterButton = false,
+  showPendingStatus = true,
 }) => {
   const navigate = useNavigate();
 
   const getAtividadeConcluida = useAtividadesConcluidasStore(
     (state) => state.getAtividadeConcluida
   );
+
+  // Inicializa os tooltips do Bootstrap quando o componente é montado
+  useEffect(() => {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+      tooltipTriggerList.map(function (tooltipTriggerEl: Element) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+      })
+    }
+  }, [activities, showRegisterButton]); // Re-inicializa se as atividades ou o botão de registro mudarem
 
   const handleEditClick = (activity: Atividade) => {
     if (usuario) {
@@ -53,22 +65,43 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({
     }
   };
 
-  // Nova função para lidar com o registro de atividade
   const handleRegisterActivityClick = (activity: Atividade) => {
-    navigate("/registrar-atividade", {
-      state: {
-        prefilledData: {
-          nome: activity.nome,
-          descricao: activity.descricao,
-          inicio: dayjs(activity.inicio).format("YYYY-MM-DDTHH:mm"), // Formata para o tipo de input datetime-local
-          fim: activity.fim ? dayjs(activity.fim).format("YYYY-MM-DDTHH:mm") : "", // Formata ou deixa vazio
-          responsavel: activity.responsavel,
-          duracao: activity.duracao,
-          categoriaNome: activity.categoria?.nome || "", // Pega o nome da categoria
-          certificado: null, // O certificado será enviado na RegistrarAtividadePage
+    const hasStarted = dayjs().isAfter(dayjs(activity.inicio));
+
+    if (hasStarted) {
+      navigate("/registrar-atividade", {
+        state: {
+          prefilledData: {
+            nome: activity.nome,
+            descricao: activity.descricao,
+            inicio: dayjs(activity.inicio).format("YYYY-MM-DDTHH:mm"),
+            fim: activity.fim
+              ? dayjs(activity.fim).format("YYYY-MM-DDTHH:mm")
+              : "",
+            responsavel: activity.responsavel,
+            duracao: activity.duracao,
+            categoriaNome: activity.categoria?.nome || "",
+            certificado: null,
+          },
         },
-      },
-    });
+      });
+    } else {
+      navigate("/planejar-atividade", {
+        state: {
+          prefilledData: {
+            nome: activity.nome,
+            descricao: activity.descricao,
+            inicio: dayjs(activity.inicio).format("YYYY-MM-DDTHH:mm"),
+            fim: activity.fim
+              ? dayjs(activity.fim).format("YYYY-MM-DDTHH:mm")
+              : "",
+            responsavel: activity.responsavel,
+            duracao: activity.duracao,
+            categoriaNome: activity.categoria?.nome || "",
+          },
+        },
+      });
+    }
   };
 
   if (!activities || activities.length === 0) {
@@ -98,8 +131,14 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({
               : null
             : null;
 
-          // A mensagem de pendência agora também depende de showPendingStatus
           const isPending = usuario && !comprovanteNome && showPendingStatus;
+
+          const hasActivityStarted = dayjs().isAfter(dayjs(activity.inicio));
+
+          // Texto do tooltip dinâmico
+          const tooltipText = hasActivityStarted
+            ? "Clique para registrar a sua participação e anexar comprovantes."
+            : "Clique para adicionar esta atividade ao organizador e simular as horas de AC.";
 
           return (
             <div
@@ -150,7 +189,6 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({
                     {comprovanteNome ? (
                       <span className="text-success">{comprovanteNome}</span>
                     ) : (
-                      // A mensagem de pendência só é exibida se showPendingStatus for true
                       showPendingStatus && (
                         <span className="text-warning">
                           Pendente (nenhum comprovante anexado)
@@ -182,17 +220,23 @@ const ListaAtividades: React.FC<ListaAtividadesProps> = ({
                     Editar Atividade
                   </button>
                 ) : (
-                  // O botão "Registre no Organizador de Atividades" só é exibido se showRegisterButton for true
                   showRegisterButton && (
                     <>
                       <span className="text-dark">
-                        Participou dessa Atividade?
+                        {hasActivityStarted
+                          ? "Participou dessa Atividade?"
+                          : "Essa atividade ainda não começou, mas você pode adicionar ela no organizador."}
                       </span>
                       <button
                         className="btn btn-outline-success btn-sm"
-                        onClick={() => handleRegisterActivityClick(activity)} // Usar a nova função
+                        onClick={() => handleRegisterActivityClick(activity)}
+                        data-bs-toggle="tooltip" // Adicione este atributo
+                        data-bs-placement="top" // Onde o tooltip aparece (top, bottom, left, right)
+                        title={tooltipText} // O texto do tooltip
                       >
-                        Registre no Organizador de Atividades
+                        {hasActivityStarted
+                          ? "Registre no Organizador de Atividades"
+                          : "Adicionar para Planejamento/Simulação"}
                       </button>
                     </>
                   )
